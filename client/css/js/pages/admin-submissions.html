@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Submission Status</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="status-page">
+  <header class="portal-header">
+    <div>
+      <p class="eyebrow">Admin Status</p>
+      <h1>Submission tracking</h1>
+      <p class="portal-subtitle">See which classes, subjects, and teachers still need to submit their result sheets.</p>
+    </div>
+    <div class="portal-actions">
+      <a class="secondary-button" href="dashboard.html">Dashboard</a>
+      <a class="secondary-button" href="teacher-portal.html">Teacher Portal</a>
+    </div>
+  </header>
+
+  <section class="admin-panel">
+    <div class="card-panel summary-row">
+      <div>
+        <p class="eyebrow">Pending submissions</p>
+        <h2 id="pendingCount">0</h2>
+      </div>
+      <div>
+        <p class="eyebrow">Tracked subjects</p>
+        <h2 id="trackedSubjects">0</h2>
+      </div>
+      <div>
+        <p class="eyebrow">Class groups</p>
+        <h2 id="trackedClasses">0</h2>
+      </div>
+    </div>
+
+    <div class="table-wrapper card-panel">
+      <table class="status-table">
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Subject</th>
+            <th>Teacher</th>
+            <th>Submitted</th>
+            <th>Missing</th>
+          </tr>
+        </thead>
+        <tbody id="statusBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+<script src="../admin-submissions.js"></script>
+</body>
+</html>

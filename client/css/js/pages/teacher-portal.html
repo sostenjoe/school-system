@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Teacher Portal</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="teacher-page">
+  <header class="portal-header">
+    <div>
+      <p class="eyebrow">Teacher Portal</p>
+      <h1>Welcome back</h1>
+      <p class="portal-subtitle">Enter student results securely and monitor submission progress for your class subjects.</p>
+    </div>
+    <div class="portal-actions">
+      <a class="primary-button" href="dashboard.html">Admin Dashboard</a>
+      <a class="secondary-button" href="admin-submissions.html">Submission Status</a>
+    </div>
+  </header>
+
+  <section class="portal-grid">
+    <aside class="profile-card">
+      <div class="profile-head">
+        <div class="profile-avatar">T</div>
+        <div>
+          <p class="eyebrow">Signed in as</p>
+          <h2 id="teacherName">Teacher</h2>
+          <p id="teacherEmail" class="muted-text"></p>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <span id="assignedSubjectsCount">0</span>
+          <p>Assigned subjects</p>
+        </div>
+        <div class="metric">
+          <span id="studentCount">0</span>
+          <p>Students in class</p>
+        </div>
+      </div>
+
+      <div class="status-box">
+        <p class="eyebrow">Quick note</p>
+        <p>Use the subject and class selector to load students and submit marks in one batch.</p>
+      </div>
+    </aside>
+
+    <main class="portal-main">
+      <div class="card-panel">
+        <div class="form-row">
+          <div class="field-group">
+            <label for="classFilter">Class</label>
+            <select id="classFilter"></select>
+          </div>
+          <div class="field-group">
+            <label for="subjectFilter">Subject</label>
+            <select id="subjectFilter"></select>
+          </div>
+          <button id="loadStudents" class="primary-button">Load Students</button>
+        </div>
+      </div>
+
+      <div class="result-panel card-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Record marks</p>
+            <h2>Class result sheet</h2>
+          </div>
+          <span id="submissionStatus" class="status-pill">No class selected</span>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Marks</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="studentRows"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-footer">
+          <button id="saveResults" class="primary-button">Save All Results</button>
+          <p id="portalMessage" class="note-text"></p>
+        </div>
+      </div>
+    </main>
+  </section>
+</div>
+
+<script src="../teacher-portal.js"></script>
+</body>
+</html>
