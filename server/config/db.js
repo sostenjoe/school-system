@@ -100,6 +100,22 @@ function initializeTables() {
             });
         }
     });
+
+    const defaultSubjects = [
+        "English",
+        "Mathematics",
+        "Science",
+        "Social Studies",
+        "Kiswahili"
+    ];
+
+    defaultSubjects.forEach((subject) => {
+        db.run("INSERT OR IGNORE INTO subjects (subject_name) VALUES (?)", [subject], (err) => {
+            if (err) {
+                console.error("Error initializing subject:", err.message);
+            }
+        });
+    });
 }
 
 module.exports = db;
