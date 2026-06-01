@@ -13,17 +13,28 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 function initializeTables() {
     const tables = [
+        `CREATE TABLE IF NOT EXISTS admins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )`,
         `CREATE TABLE IF NOT EXISTS teachers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            subject_id INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (subject_id) REFERENCES subjects (id)
         )`,
         `CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             gender TEXT,
-            class TEXT NOT NULL
+            class TEXT NOT NULL,
+            created_by INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES teachers (id)
         )`,
         `CREATE TABLE IF NOT EXISTS subjects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,6 +67,22 @@ function initializeTables() {
                 console.error("Error creating table:", err.message);
             }
         });
+    });
+
+    // Initialize default admin account
+    const initAdmin = `
+        INSERT OR IGNORE INTO admins (username, password) 
+        VALUES (?, ?)
+    `;
+    const bcrypt = require("bcryptjs");
+    bcrypt.hash("admin", 10, (err, hashedPassword) => {
+        if (!err) {
+            db.run(initAdmin, ["admin", hashedPassword], (err) => {
+                if (err) {
+                    console.error("Error initializing admin:", err.message);
+                }
+            });
+        }
     });
 }
 

@@ -19,7 +19,7 @@ exports.getMe = (req, res) => {
     }
 
     const teacher = result;
-    res.json({ id: teacher.id, name: teacher.name, email: teacher.email });
+    res.json({ id: teacher.id, name: teacher.name, email: teacher.email, subject_id: teacher.subject_id });
   });
 };
 
@@ -58,5 +58,22 @@ exports.getSubjects = (req, res) => {
     }
 
     res.json(result);
+  });
+};
+
+exports.assignSubject = (req, res) => {
+  const teacherId = req.teacher?.id;
+  const { subjectId } = req.body;
+
+  if (!teacherId || !subjectId) {
+    return res.status(400).json({ message: "Teacher ID and Subject ID required." });
+  }
+
+  Teacher.assignSubject(teacherId, subjectId, (err) => {
+    if (err) {
+      return res.status(500).json({ message: err.message });
+    }
+
+    res.json({ message: "Subject assigned successfully" });
   });
 };

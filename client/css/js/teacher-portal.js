@@ -1,4 +1,9 @@
 const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || (role && role !== "teacher")) {
+  window.location.href = "login.html";
+}
 const teacherNameEl = document.getElementById("teacherName");
 const teacherEmailEl = document.getElementById("teacherEmail");
 const assignedSubjectsCountEl = document.getElementById("assignedSubjectsCount");
@@ -10,6 +15,7 @@ const saveResultsButton = document.getElementById("saveResults");
 const studentRows = document.getElementById("studentRows");
 const submissionStatus = document.getElementById("submissionStatus");
 const portalMessage = document.getElementById("portalMessage");
+const logoutBtn = document.getElementById("logoutBtn");
 
 if (!token) {
   window.location.href = "login.html";
@@ -160,3 +166,13 @@ loadSubjects().catch((error) => setMessage(error.message, "error"));
 loadClasses().catch((error) => setMessage(error.message, "error"));
 loadStudentsButton.addEventListener("click", loadStudentRows);
 saveResultsButton.addEventListener("click", saveResultBatch);
+
+document.getElementById("registerStudentBtn")?.addEventListener("click", () => {
+  window.location.href = "student-register.html";
+});
+
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "login.html";
+});

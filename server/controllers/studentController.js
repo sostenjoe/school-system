@@ -13,6 +13,38 @@ exports.addStudent = (req, res) => {
     });
 };
 
+exports.addStudentByTeacher = (req, res) => {
+    const teacherId = req.teacher?.id;
+    if (!teacherId) {
+        return res.status(401).json({ message: "Unauthorized access." });
+    }
+
+    const { name, gender, class: className } = req.body;
+
+    if (!name || !className) {
+        return res.status(400).json({ message: "Name and class are required." });
+    }
+
+    Student.create(
+        {
+            name,
+            gender: gender || "Not specified",
+            class: className,
+            created_by: teacherId
+        },
+        (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: err.message });
+            }
+
+            res.json({
+                message: "Student registered successfully",
+                studentId: result.insertId
+            });
+        }
+    );
+};
+
 exports.getStudents = (req, res) => {
     Student.getAll((err, result) => {
         if (err) {
@@ -20,5 +52,20 @@ exports.getStudents = (req, res) => {
         }
 
         res.json(result);
+    });
+};
+
+exports.getStudentsByTeacher = (req, res) => {
+    const teacherId = req.teacher?.id;
+    if (!teacherId) {
+        return res.status(401).json({ message: "Unauthorized access." });
+    }
+
+    Student.getByTeacher(teacherId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: err.message });
+        }
+
+        res.json(result || []);
     });
 };

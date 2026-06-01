@@ -5,5 +5,6 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 router.get("/me", authMiddleware.authenticate, teacherController.getMe);
 router.get("/subjects", authMiddleware.authenticate, teacherController.getSubjects);
+router.put("/subject", authMiddleware.authenticate, teacherController.assignSubject);
 
 module.exports = router;

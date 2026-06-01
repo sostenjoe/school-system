@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register Student</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <h1>👥 Register Student</h1>
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+
+    <div class="info-box">
+      <p>📌 Register new students that you teach. These students will appear in your class list for results entry.</p>
+    </div>
+
+    <form id="studentForm">
+      <div class="form-group">
+        <label for="studentName">👤 Student Name *</label>
+        <input type="text" id="studentName" placeholder="Enter student full name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="studentGender">👨 Gender</label>
+        <select id="studentGender">
+          <option value="">Not specified</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="studentClass">📚 Class *</label>
+        <input type="text" id="studentClass" placeholder="e.g., Class X-A" required>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-save">➕ Register Student</button>
+      </div>
+
+      <div id="message" class="message"></div>
+    </form>
+
+    <div class="students-list">
+      <h3>📖 Students Registered by You</h3>
+      <div id="studentsList" style="display: grid; gap: 10px;">
+        <p style="text-align: center; color: var(--muted);">Loading...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../student-register.js"></script>
+</body>
+</html>

@@ -2,20 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teacher Portal</title>
 <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
+
 <div class="teacher-page">
   <header class="portal-header">
     <div>
-      <p class="eyebrow">Teacher Portal</p>
-      <h1>Welcome back</h1>
+      <p class="eyebrow">👨‍🏫 Teacher Portal</p>
+      <h1>Welcome back!</h1>
       <p class="portal-subtitle">Enter student results securely and monitor submission progress for your class subjects.</p>
     </div>
     <div class="portal-actions">
-      <a class="primary-button" href="dashboard.html">Admin Dashboard</a>
-      <a class="secondary-button" href="admin-submissions.html">Submission Status</a>
+      <button class="primary-button" id="registerStudentBtn">➕ Register Student</button>
+      <button class="secondary-button" id="logoutBtn">🚪 Logout</button>
     </div>
   </header>
 
@@ -24,7 +26,7 @@
       <div class="profile-head">
         <div class="profile-avatar">T</div>
         <div>
-          <p class="eyebrow">Signed in as</p>
+          <p class="eyebrow">👋 Signed in as</p>
           <h2 id="teacherName">Teacher</h2>
           <p id="teacherEmail" class="muted-text"></p>
         </div>
@@ -37,12 +39,12 @@
         </div>
         <div class="metric">
           <span id="studentCount">0</span>
-          <p>Students in class</p>
+          <p>Students</p>
         </div>
       </div>
 
       <div class="status-box">
-        <p class="eyebrow">Quick note</p>
+        <p class="eyebrow">📌 Quick tip</p>
         <p>Use the subject and class selector to load students and submit marks in one batch.</p>
       </div>
     </aside>
@@ -51,24 +53,28 @@
       <div class="card-panel">
         <div class="form-row">
           <div class="field-group">
-            <label for="classFilter">Class</label>
-            <select id="classFilter"></select>
+            <label for="classFilter">📚 Class</label>
+            <select id="classFilter">
+              <option value="">Select Class...</option>
+            </select>
           </div>
           <div class="field-group">
-            <label for="subjectFilter">Subject</label>
-            <select id="subjectFilter"></select>
+            <label for="subjectFilter">📖 Subject</label>
+            <select id="subjectFilter">
+              <option value="">Select Subject...</option>
+            </select>
           </div>
-          <button id="loadStudents" class="primary-button">Load Students</button>
+          <button id="loadStudents" class="primary-button" style="align-self: flex-end;">🔄 Load</button>
         </div>
       </div>
 
       <div class="result-panel card-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Record marks</p>
+            <p class="eyebrow">✏️ Record marks</p>
             <h2>Class result sheet</h2>
           </div>
-          <span id="submissionStatus" class="status-pill">No class selected</span>
+          <span id="submissionStatus" class="status-pill">⚪ No class selected</span>
         </div>
 
         <div class="table-wrapper">
@@ -76,17 +82,23 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Student</th>
-                <th>Marks</th>
-                <th>Status</th>
+                <th>📝 Student Name</th>
+                <th>✏️ Marks (0-100)</th>
+                <th>📊 Grade</th>
               </tr>
             </thead>
-            <tbody id="studentRows"></tbody>
+            <tbody id="studentRows">
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 20px; color: var(--muted);">
+                  Select a class and subject to load students
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
 
         <div class="panel-footer">
-          <button id="saveResults" class="primary-button">Save All Results</button>
+          <button id="saveResults" class="primary-button">💾 Save All Results</button>
           <p id="portalMessage" class="note-text"></p>
         </div>
       </div>

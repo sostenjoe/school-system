@@ -1,11 +1,17 @@
 const messageEl = document.getElementById("message");
+const adminMessageEl = document.getElementById("adminMessage");
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const forgotForm = document.getElementById("forgotForm");
 const resetForm = document.getElementById("resetForm");
+const adminLoginForm = document.getElementById("adminLoginForm");
 const showLogin = document.getElementById("showLogin");
 const showRegister = document.getElementById("showRegister");
 const showForgot = document.getElementById("showForgot");
+const teacherRole = document.getElementById("teacherRole");
+const adminRole = document.getElementById("adminRole");
+const teacherSection = document.getElementById("teacherSection");
+const adminSection = document.getElementById("adminSection");
 
 const tabButtons = [showLogin, showRegister, showForgot];
 const tabMap = {
@@ -25,6 +31,25 @@ function showForm(formToShow) {
 
   messageEl.textContent = "";
 }
+
+// Role switching
+teacherRole.addEventListener("click", () => {
+  teacherRole.classList.add("active");
+  adminRole.classList.remove("active");
+  teacherSection.classList.add("active");
+  adminSection.classList.remove("active");
+  messageEl.textContent = "";
+  adminMessageEl.textContent = "";
+});
+
+adminRole.addEventListener("click", () => {
+  adminRole.classList.add("active");
+  teacherRole.classList.remove("active");
+  adminSection.classList.add("active");
+  teacherSection.classList.remove("active");
+  messageEl.textContent = "";
+  adminMessageEl.textContent = "";
+});
 
 showLogin.addEventListener("click", () => showForm(loginForm));
 showRegister.addEventListener("click", () => showForm(registerForm));
@@ -47,6 +72,7 @@ async function handleSubmit(url, body, successMessage, redirect) {
       }
       if (redirect) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("role", "teacher");
         window.location.href = redirect;
       }
     } else {
@@ -54,6 +80,33 @@ async function handleSubmit(url, body, successMessage, redirect) {
     }
   } catch (error) {
     messageEl.textContent = "Server error. Please try again later.";
+  }
+}
+
+async function handleAdminSubmit(url, body, successMessage, redirect) {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      adminMessageEl.textContent = successMessage || data.message;
+      if (redirect) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", "admin");
+        setTimeout(() => {
+          window.location.href = redirect;
+        }, 1000);
+      }
+    } else {
+      adminMessageEl.textContent = data.message || "Something went wrong.";
+    }
+  } catch (error) {
+    adminMessageEl.textContent = "Server error. Please try again later.";
   }
 }
 
@@ -85,6 +138,13 @@ resetForm.addEventListener("submit", (e) => {
   const code = document.getElementById("resetCode").value.trim();
   const password = document.getElementById("resetPassword").value;
   handleSubmit("/api/auth/reset-password", { email, code, password }, "Password reset successful. You can sign in now.");
+});
+
+adminLoginForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const username = document.getElementById("adminUsername").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  handleAdminSubmit("/api/admin/login", { username, password }, "Admin login successful.", "admin-dashboard.html");
 });
 
 showForm(loginForm);
