@@ -13,6 +13,13 @@ const authHeaders = {
 let subjectChart = null;
 let classChart = null;
 
+function formatResultType(type) {
+  return String(type || "terminal")
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
   const data = await response.json();
@@ -34,7 +41,7 @@ async function loadAdminProfile() {
 async function loadMetrics() {
   try {
     const students = await fetchJson("/api/students");
-    const teachers = await fetchJson("/api/teachers");
+    const teachers = await fetchJson("/api/teachers", { headers: authHeaders });
     const subjects = await fetchJson("/api/subjects");
     const results = await fetchJson("/api/results");
     
@@ -167,7 +174,7 @@ async function loadTopPerformers() {
     const tbody = document.getElementById("topPerformersBody");
     
     if (data.length === 0) {
-      tbody.innerHTML = "<tr><td colspan=\"6\" style=\"text-align: center;\">No data available</td></tr>";
+      tbody.innerHTML = "<tr><td colspan=\"7\" style=\"text-align: center;\">No data available</td></tr>";
       return;
     }
     
@@ -176,6 +183,7 @@ async function loadTopPerformers() {
         <td>${student.name}</td>
         <td>${student.class}</td>
         <td>${student.subject_name}</td>
+        <td>${formatResultType(student.result_type)}</td>
         <td>${student.marks}</td>
         <td>${student.grade}</td>
         <td>${student.teacher_name || "N/A"}</td>
@@ -183,7 +191,7 @@ async function loadTopPerformers() {
     `).join("");
   } catch (error) {
     console.error("Error loading top performers:", error);
-    document.getElementById("topPerformersBody").innerHTML = "<tr><td colspan=\"6\" style=\"text-align: center; color: red;\">Error loading data</td></tr>";
+    document.getElementById("topPerformersBody").innerHTML = "<tr><td colspan=\"7\" style=\"text-align: center; color: red;\">Error loading data</td></tr>";
   }
 }
 
@@ -193,7 +201,7 @@ async function loadUnderperforming() {
     const tbody = document.getElementById("underperformingBody");
     
     if (data.length === 0) {
-      tbody.innerHTML = "<tr><td colspan=\"6\" style=\"text-align: center;\">Great! No underperforming students below 50</td></tr>";
+      tbody.innerHTML = "<tr><td colspan=\"7\" style=\"text-align: center;\">Great! No underperforming results below 50</td></tr>";
       return;
     }
     
@@ -202,6 +210,7 @@ async function loadUnderperforming() {
         <td>${student.name}</td>
         <td>${student.class}</td>
         <td>${student.subject_name}</td>
+        <td>${formatResultType(student.result_type)}</td>
         <td>${student.marks}</td>
         <td>${student.grade}</td>
         <td>${student.teacher_name || "N/A"}</td>
@@ -209,7 +218,35 @@ async function loadUnderperforming() {
     `).join("");
   } catch (error) {
     console.error("Error loading underperforming students:", error);
-    document.getElementById("underperformingBody").innerHTML = "<tr><td colspan=\"6\" style=\"text-align: center; color: red;\">Error loading data</td></tr>";
+    document.getElementById("underperformingBody").innerHTML = "<tr><td colspan=\"7\" style=\"text-align: center; color: red;\">Error loading data</td></tr>";
+  }
+}
+
+async function loadClassSummary() {
+  try {
+    const data = await fetchJson("/api/results/class-summary", { headers: authHeaders });
+    const tbody = document.getElementById("classSummaryBody");
+
+    if (data.length === 0) {
+      tbody.innerHTML = "<tr><td colspan=\"8\" style=\"text-align: center;\">No class results available</td></tr>";
+      return;
+    }
+
+    tbody.innerHTML = data.map((row) => `
+      <tr>
+        <td>${row.class_name}</td>
+        <td>${formatResultType(row.result_type)}</td>
+        <td>${row.total_students || 0}</td>
+        <td>${row.submitted_results || 0}</td>
+        <td>${row.average_marks !== null && row.average_marks !== undefined ? row.average_marks : "N/A"}</td>
+        <td>${row.highest_marks !== null && row.highest_marks !== undefined ? row.highest_marks : "N/A"}</td>
+        <td>${row.lowest_marks !== null && row.lowest_marks !== undefined ? row.lowest_marks : "N/A"}</td>
+        <td>${row.underperforming_results || 0}</td>
+      </tr>
+    `).join("");
+  } catch (error) {
+    console.error("Error loading class summary:", error);
+    document.getElementById("classSummaryBody").innerHTML = "<tr><td colspan=\"8\" style=\"text-align: center; color: red;\">Error loading class summary</td></tr>";
   }
 }
 
@@ -254,6 +291,7 @@ loadAdminProfile();
 loadMetrics();
 loadSubjectPerformance();
 loadClassPerformance();
+loadClassSummary();
 loadTopPerformers();
 loadUnderperforming();
 loadTeacherPerformance();
@@ -263,6 +301,7 @@ setInterval(() => {
   loadMetrics();
   loadSubjectPerformance();
   loadClassPerformance();
+  loadClassSummary();
   loadTopPerformers();
   loadUnderperforming();
   loadTeacherPerformance();

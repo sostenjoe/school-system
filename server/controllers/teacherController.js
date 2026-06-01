@@ -23,6 +23,16 @@ exports.getMe = (req, res) => {
   });
 };
 
+exports.getTeachers = (req, res) => {
+  Teacher.getAll((err, result) => {
+    if (err) {
+      return res.status(500).json({ message: err.message });
+    }
+
+    res.json(result);
+  });
+};
+
 exports.getSubjects = (req, res) => {
   const teacherId = req.teacher?.id;
 
@@ -48,16 +58,62 @@ exports.getSubjects = (req, res) => {
       });
     }
 
-    if (!result || result.length === 0) {
-      return Subject.getAll((subjectErr, subjects) => {
-        if (subjectErr) {
-          return res.status(500).json(subjectErr);
-        }
-        return res.json(subjects);
-      });
+    res.json(result || []);
+  });
+};
+
+exports.assignSubjectToTeacher = (req, res) => {
+  const teacherId = Number(req.params.teacherId);
+  const subjectId = Number(req.body.subjectId);
+
+  if (!teacherId || !subjectId) {
+    return res.status(400).json({ message: "Teacher ID and Subject ID are required." });
+  }
+
+  db.get("SELECT id FROM teachers WHERE id = ?", [teacherId], (teacherErr, teacher) => {
+    if (teacherErr) {
+      return res.status(500).json({ message: teacherErr.message });
     }
 
-    res.json(result);
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found." });
+    }
+
+    db.get("SELECT id FROM subjects WHERE id = ?", [subjectId], (subjectErr, subject) => {
+      if (subjectErr) {
+        return res.status(500).json({ message: subjectErr.message });
+      }
+
+      if (!subject) {
+        return res.status(404).json({ message: "Subject not found." });
+      }
+
+      db.serialize(() => {
+        db.run("DELETE FROM teacher_subjects WHERE teacher_id = ?", [teacherId], (deleteErr) => {
+          if (deleteErr) {
+            return res.status(500).json({ message: deleteErr.message });
+          }
+
+          db.run(
+            "INSERT INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)",
+            [teacherId, subjectId],
+            (insertErr) => {
+              if (insertErr) {
+                return res.status(500).json({ message: insertErr.message });
+              }
+
+              Teacher.assignSubject(teacherId, subjectId, (assignErr) => {
+                if (assignErr) {
+                  return res.status(500).json({ message: assignErr.message });
+                }
+
+                res.json({ message: "Subject assigned to teacher successfully." });
+              });
+            }
+          );
+        });
+      });
+    });
   });
 };
 
@@ -74,6 +130,22 @@ exports.assignSubject = (req, res) => {
       return res.status(500).json({ message: err.message });
     }
 
-    res.json({ message: "Subject assigned successfully" });
+    db.run("DELETE FROM teacher_subjects WHERE teacher_id = ?", [teacherId], (deleteErr) => {
+      if (deleteErr) {
+        return res.status(500).json({ message: deleteErr.message });
+      }
+
+      db.run(
+        "INSERT INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)",
+        [teacherId, subjectId],
+        (insertErr) => {
+          if (insertErr) {
+            return res.status(500).json({ message: insertErr.message });
+          }
+
+          res.json({ message: "Subject assigned successfully" });
+        }
+      );
+    });
   });
 };

@@ -3,87 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>School Management System</title>
+<title>School Portal</title>
 <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
 
-<div class="login-page">
-  <div class="login-box">
-    <h1>📚 School Portal</h1>
-    <p class="login-subtitle">Professional education management system</p>
+<main class="login-page">
+  <section class="login-shell">
+    <div class="login-brand-panel">
+      <p class="eyebrow">School Management System</p>
+      <h1>One place for teachers, results, and admin oversight.</h1>
+      <p>Teachers can submit class results by assessment type while admins manage subjects, teachers, and school performance.</p>
 
-    <div class="role-selector">
-      <button type="button" class="role-button active" id="teacherRole">
-        👨‍🏫 Teacher
-      </button>
-      <button type="button" class="role-button" id="adminRole">
-        🔐 Admin
-      </button>
-    </div>
-
-    <!-- Teacher Section -->
-    <div id="teacherSection" class="auth-section active">
-      <nav class="auth-tabs">
-        <button type="button" id="showLogin" class="active">Sign In</button>
-        <button type="button" id="showRegister">Register</button>
-        <button type="button" id="showForgot">Forgot Password</button>
-      </nav>
-
-      <form id="loginForm" class="auth-form active">
-        <input type="email" id="email" placeholder="📧 Email Address" required>
-        <input type="password" id="password" placeholder="🔒 Password" required>
-        <button type="submit">Sign In</button>
-      </form>
-
-      <form id="registerForm" class="auth-form">
-        <input type="text" id="registerName" placeholder="👤 Full Name" required>
-        <input type="email" id="registerEmail" placeholder="📧 Email Address" required>
-        <input type="password" id="registerPassword" placeholder="🔒 Password (Min 6 chars)" required>
-        <button type="submit">Create Account</button>
-      </form>
-
-      <form id="forgotForm" class="auth-form">
-        <input type="email" id="forgotEmail" placeholder="📧 Email Address" required>
-        <button type="submit">Send Reset Code</button>
-      </form>
-
-      <form id="resetForm" class="auth-form">
-        <input type="email" id="resetEmail" placeholder="📧 Email Address" required>
-        <input type="text" id="resetCode" placeholder="✉️ Reset Code from Email" required>
-        <input type="password" id="resetPassword" placeholder="🔒 New Password" required>
-        <button type="submit">Reset Password</button>
-      </form>
-
-      <p id="message"></p>
-    </div>
-
-    <!-- Admin Section -->
-    <div id="adminSection" class="auth-section">
-      <h3 style="text-align: center; margin-bottom: 20px; font-size: 1.1rem; font-weight: 700; color: #111827;">
-        🔐 Admin Console
-      </h3>
-      
-      <form id="adminLoginForm" class="auth-form active">
-        <input type="text" id="adminUsername" placeholder="👤 Admin Username" required>
-        <input type="password" id="adminPassword" placeholder="🔒 Admin Password" required>
-        <button type="submit">Admin Login</button>
-      </form>
-
-      <p id="adminMessage"></p>
-      
-      <div class="admin-note">
-        <strong>⚠️ Default Credentials:</strong><br>
-        Username: <code>admin</code><br>
-        Password: <code>admin</code><br>
-        <small>⚡ Change immediately after first login</small>
+      <div class="login-highlights">
+        <div>
+          <strong>Role based</strong>
+          <span>Teacher and admin areas stay separate.</span>
+        </div>
+        <div>
+          <strong>Result tracking</strong>
+          <span>Mid Term, End Term, Terminal, Assignment, and Exam records.</span>
+        </div>
+        <div>
+          <strong>Mobile ready</strong>
+          <span>Designed to work comfortably on phones and tablets.</span>
+        </div>
       </div>
     </div>
 
-  </div>
-</div>
+    <div class="login-box">
+      <div class="login-box-header">
+        <p class="eyebrow">Secure Access</p>
+        <h2>Sign in</h2>
+        <p class="login-subtitle">Choose your role and continue to your workspace.</p>
+      </div>
+
+      <div class="role-selector">
+        <button type="button" class="role-button active" id="teacherRole">Teacher</button>
+        <button type="button" class="role-button" id="adminRole">Admin</button>
+      </div>
+
+      <div id="teacherSection" class="auth-section active">
+        <nav class="auth-tabs">
+          <button type="button" id="showLogin" class="active">Sign In</button>
+          <button type="button" id="showRegister">Register</button>
+          <button type="button" id="showForgot">Forgot</button>
+        </nav>
+
+        <form id="loginForm" class="auth-form active">
+          <label class="sr-only" for="email">Email Address</label>
+          <input type="email" id="email" placeholder="Email Address" required>
+          <label class="sr-only" for="password">Password</label>
+          <input type="password" id="password" placeholder="Password" required>
+          <button type="submit">Sign In</button>
+        </form>
+
+        <form id="registerForm" class="auth-form">
+          <label class="sr-only" for="registerName">Full Name</label>
+          <input type="text" id="registerName" placeholder="Full Name" required>
+          <label class="sr-only" for="registerEmail">Email Address</label>
+          <input type="email" id="registerEmail" placeholder="Email Address" required>
+          <label class="sr-only" for="registerPassword">Password</label>
+          <input type="password" id="registerPassword" placeholder="Password (min 6 characters)" required>
+          <button type="submit">Create Account</button>
+        </form>
+
+        <form id="forgotForm" class="auth-form">
+          <label class="sr-only" for="forgotEmail">Email Address</label>
+          <input type="email" id="forgotEmail" placeholder="Email Address" required>
+          <button type="submit">Send Reset Code</button>
+        </form>
+
+        <form id="resetForm" class="auth-form">
+          <label class="sr-only" for="resetEmail">Email Address</label>
+          <input type="email" id="resetEmail" placeholder="Email Address" required>
+          <label class="sr-only" for="resetCode">Reset Code</label>
+          <input type="text" id="resetCode" placeholder="Reset Code" required>
+          <label class="sr-only" for="resetPassword">New Password</label>
+          <input type="password" id="resetPassword" placeholder="New Password" required>
+          <button type="submit">Reset Password</button>
+        </form>
+
+        <div class="auth-divider"><span>Other sign in options</span></div>
+        <div class="social-login-grid">
+          <button type="button" class="social-login" data-provider="Google">G Google</button>
+          <button type="button" class="social-login" data-provider="Apple">Apple</button>
+        </div>
+
+        <p id="message" class="auth-message"></p>
+      </div>
+
+      <div id="adminSection" class="auth-section">
+        <div class="admin-login-heading">
+          <h3>Admin Console</h3>
+          <p>Use the admin account to manage teachers, subjects, and school results.</p>
+        </div>
+
+        <form id="adminLoginForm" class="auth-form active">
+          <label class="sr-only" for="adminUsername">Admin Username</label>
+          <input type="text" id="adminUsername" placeholder="Admin Username" required>
+          <label class="sr-only" for="adminPassword">Admin Password</label>
+          <input type="password" id="adminPassword" placeholder="Admin Password" required>
+          <button type="submit">Admin Login</button>
+        </form>
+
+        <p id="adminMessage" class="auth-message"></p>
+
+        <div class="admin-note">
+          <strong>Default credentials</strong>
+          <span>Username: <code>admin</code> Password: <code>admin</code></span>
+          <small>Change these after first login.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
 
 <script src="../login.js"></script>
 </body>
 </html>
-

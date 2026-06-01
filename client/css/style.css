@@ -1397,6 +1397,357 @@ body {
   color: #dc2626;
 }
 
+/* SYSTEMATIC AUTH AND RESPONSIVE OVERRIDES */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.92), rgba(30, 64, 175, 0.9)),
+    url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1600&q=80");
+  background-size: cover;
+  background-position: center;
+  overflow: auto;
+}
+
+.login-page::before,
+.login-page::after {
+  display: none;
+}
+
+.login-shell {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  min-height: 680px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.login-brand-panel {
+  padding: 48px;
+  background: linear-gradient(160deg, #0f766e 0%, #1d4ed8 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.login-brand-panel .eyebrow,
+.login-brand-panel p {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.login-brand-panel h1 {
+  max-width: 580px;
+  font-size: 2.65rem;
+  line-height: 1.08;
+  font-weight: 800;
+  margin: 0;
+}
+
+.login-brand-panel > p {
+  max-width: 560px;
+  font-size: 1.02rem;
+}
+
+.login-highlights {
+  display: grid;
+  gap: 12px;
+}
+
+.login-highlights div {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.login-highlights strong,
+.login-highlights span {
+  display: block;
+}
+
+.login-highlights span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.login-box {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 44px;
+  animation: none;
+}
+
+.login-box-header {
+  margin-bottom: 24px;
+}
+
+.login-box-header h2 {
+  font-size: 2rem;
+  margin: 0 0 6px;
+}
+
+.login-box h1 {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.role-selector {
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 22px;
+}
+
+.role-button,
+.auth-tabs button {
+  border-radius: 8px;
+}
+
+.role-button.active,
+.auth-tabs button.active,
+.auth-section button[type="submit"],
+button.primary-button,
+button:not(.auth-tabs button):not(.role-button):not(.social-login) {
+  background: #0f766e;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.22);
+}
+
+.auth-tabs {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.auth-form {
+  gap: 12px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+}
+
+.social-login-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.social-login {
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.social-login:hover {
+  border-color: #0f766e;
+  background: #f0fdfa;
+}
+
+.auth-message {
+  display: none;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.auth-message.success,
+.auth-message.error,
+.auth-message.warning {
+  display: block;
+}
+
+.auth-message.success {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.24);
+}
+
+.auth-message.error {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.24);
+}
+
+.auth-message.warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.26);
+}
+
+#message.auth-message.success,
+#adminMessage.auth-message.success {
+  color: #047857;
+}
+
+#message.auth-message.error,
+#adminMessage.auth-message.error {
+  color: #dc2626;
+}
+
+#message.auth-message.warning,
+#adminMessage.auth-message.warning {
+  color: #92400e;
+}
+
+.admin-login-heading {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-login-heading h3 {
+  font-size: 1.25rem;
+  margin-bottom: 6px;
+}
+
+.admin-login-heading p {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.admin-note {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 8px;
+}
+
+.result-filter-row {
+  grid-template-columns: 1fr 1fr 1fr auto;
+}
+
+.settings-container {
+  max-width: 860px;
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    padding: 18px;
+  }
+
+  .login-shell {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .login-brand-panel {
+    padding: 30px;
+  }
+
+  .login-brand-panel h1 {
+    font-size: 2rem;
+  }
+
+  .login-box {
+    padding: 30px;
+  }
+
+  .result-filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-header,
+  .admin-dashboard {
+    padding: 24px;
+  }
+
+  .portal-grid {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 560px) {
+  .login-page {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  .login-shell {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+
+  .login-brand-panel {
+    padding: 24px;
+  }
+
+  .login-highlights {
+    display: none;
+  }
+
+  .login-box {
+    padding: 24px;
+  }
+
+  .role-selector,
+  .auth-tabs,
+  .social-login-grid,
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header,
+  .panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .table-card,
+  .chart-card,
+  .card-panel,
+  .profile-card,
+  .settings-card {
+    padding: 18px;
+    border-radius: 8px;
+  }
+
+  .settings-container {
+    margin: 0;
+    padding: 16px;
+  }
+}
+
 .auth-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

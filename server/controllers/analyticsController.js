@@ -84,6 +84,7 @@ exports.getUnderperformingStudents = (req, res) => {
             students.name,
             students.class,
             subjects.subject_name,
+            COALESCE(results.result_type, 'terminal') AS result_type,
             results.marks,
             results.grade,
             teachers.name as teacher_name
@@ -113,6 +114,7 @@ exports.getTopPerformers = (req, res) => {
             students.name,
             students.class,
             subjects.subject_name,
+            COALESCE(results.result_type, 'terminal') AS result_type,
             results.marks,
             results.grade,
             teachers.name as teacher_name

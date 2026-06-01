@@ -22,7 +22,13 @@ const Teacher = {
     },
 
     getAll: (callback) => {
-        db.all("SELECT * FROM teachers", callback);
+        const sql = `
+            SELECT t.id, t.name, t.email, t.subject_id, s.subject_name, t.created_at
+            FROM teachers t
+            LEFT JOIN subjects s ON t.subject_id = s.id
+            ORDER BY t.name
+        `;
+        db.all(sql, callback);
     },
 
     updatePasswordByEmail: (email, password, callback) => {

@@ -10,6 +10,7 @@ const assignedSubjectsCountEl = document.getElementById("assignedSubjectsCount")
 const studentCountEl = document.getElementById("studentCount");
 const classFilter = document.getElementById("classFilter");
 const subjectFilter = document.getElementById("subjectFilter");
+const resultTypeFilter = document.getElementById("resultTypeFilter");
 const loadStudentsButton = document.getElementById("loadStudents");
 const saveResultsButton = document.getElementById("saveResults");
 const studentRows = document.getElementById("studentRows");
@@ -54,6 +55,12 @@ async function loadTeacherProfile() {
 async function loadSubjects() {
   const subjects = await fetchJson("/api/teachers/subjects", { headers: authHeaders });
   subjectFilter.innerHTML = "";
+  if (subjects.length === 0) {
+    subjectFilter.innerHTML = "<option value=\"\">No assigned subjects</option>";
+    assignedSubjectsCountEl.textContent = "0";
+    return;
+  }
+
   subjects.forEach((subject) => {
     const option = document.createElement("option");
     option.value = subject.id;
@@ -101,16 +108,20 @@ async function loadStudentRows() {
   clearMessage();
   const selectedClass = classFilter.value;
   const selectedSubject = subjectFilter.value;
+  const selectedType = resultTypeFilter.value;
 
-  if (!selectedClass || !selectedSubject) {
-    setMessage("Please choose both class and subject.", "error");
+  if (!selectedClass || !selectedSubject || !selectedType) {
+    setMessage("Please choose class, subject, and result type.", "error");
     return;
   }
 
-  submissionStatus.textContent = `Loading ${selectedClass} / subject...`;
+  submissionStatus.textContent = `Loading ${selectedClass} results...`;
 
   try {
-    const students = await fetchJson(`/api/results/class/${encodeURIComponent(selectedClass)}/subject/${selectedSubject}`, { headers: authHeaders });
+    const students = await fetchJson(
+      `/api/results/class/${encodeURIComponent(selectedClass)}/subject/${selectedSubject}?result_type=${encodeURIComponent(selectedType)}`,
+      { headers: authHeaders }
+    );
     renderStudentTable(students.map((student) => ({
       student_id: student.student_id,
       student_name: student.student_name,
@@ -128,6 +139,7 @@ async function saveResultBatch() {
   clearMessage();
   const selectedSubject = subjectFilter.value;
   const selectedClass = classFilter.value;
+  const selectedType = resultTypeFilter.value;
 
   const rows = Array.from(document.querySelectorAll(".result-input"));
   const results = rows
@@ -147,12 +159,10 @@ async function saveResultBatch() {
     await fetchJson("/api/results/batch", {
       method: "POST",
       headers: authHeaders,
-      body: JSON.stringify({ results })
+      body: JSON.stringify({ results, result_type: selectedType })
     });
-    setMessage(`Saved ${results.length} result entries successfully. Redirecting to admin view...`);
-    setTimeout(() => {
-      window.location.href = "admin-submissions.html";
-    }, 1200);
+    setMessage(`Saved ${results.length} ${selectedType.replace("_", " ")} result entries successfully.`);
+    await loadStudentRows();
   } catch (error) {
     setMessage(error.message, "error");
   }

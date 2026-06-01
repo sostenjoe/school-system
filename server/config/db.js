@@ -69,6 +69,22 @@ function initializeTables() {
         });
     });
 
+    db.all("PRAGMA table_info(results)", (err, columns) => {
+        if (err) {
+            console.error("Error checking results table:", err.message);
+            return;
+        }
+
+        const hasResultType = columns.some((column) => column.name === "result_type");
+        if (!hasResultType) {
+            db.run("ALTER TABLE results ADD COLUMN result_type TEXT DEFAULT 'terminal'", (alterErr) => {
+                if (alterErr) {
+                    console.error("Error adding result_type column:", alterErr.message);
+                }
+            });
+        }
+    });
+
     // Initialize default admin account
     const initAdmin = `
         INSERT OR IGNORE INTO admins (username, password) 

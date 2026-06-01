@@ -16,6 +16,20 @@ const smtpTransport = nodemailer.createTransport({
     }
 });
 
+function hasConfiguredSmtp() {
+    const user = process.env.SMTP_USER || "";
+    const pass = process.env.SMTP_PASS || "";
+    return Boolean(
+        process.env.SMTP_HOST &&
+        user &&
+        pass &&
+        user !== "your_email@gmail.com" &&
+        pass !== "your_app_specific_password" &&
+        !user.includes("your-smtp-user") &&
+        !pass.includes("your-smtp-pass")
+    );
+}
+
 async function sendResetEmail(email, code) {
     const mailOptions = {
         from: process.env.SMTP_FROM || "no-reply@school-system.com",
@@ -115,12 +129,22 @@ exports.forgotPassword = async (req, res) => {
 
         passwordResetCodes.set(email, { code, expiresAt });
 
+        if (!hasConfiguredSmtp()) {
+            return res.json({
+                message: "Email is not configured yet. Use the reset code shown below for local testing.",
+                resetCode: code,
+                emailConfigured: false
+            });
+        }
+
         try {
             await sendResetEmail(email, code);
-            res.json({ message: "Reset code sent to your email. Check your inbox." });
+            res.json({ message: "Reset code sent to your email. Check your inbox.", emailConfigured: true });
         } catch (emailError) {
             console.error("SMTP error:", emailError);
-            res.status(500).json({ message: "Unable to send reset code email. Please try again later." });
+            res.status(500).json({
+                message: "Unable to send reset code email. Check SMTP_USER and SMTP_PASS in your .env file."
+            });
         }
     });
 };

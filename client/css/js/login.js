@@ -12,6 +12,7 @@ const teacherRole = document.getElementById("teacherRole");
 const adminRole = document.getElementById("adminRole");
 const teacherSection = document.getElementById("teacherSection");
 const adminSection = document.getElementById("adminSection");
+const socialButtons = document.querySelectorAll(".social-login");
 
 const tabButtons = [showLogin, showRegister, showForgot];
 const tabMap = {
@@ -29,7 +30,12 @@ function showForm(formToShow) {
     button.classList.toggle("active", button === tabMap[formToShow.id]);
   });
 
-  messageEl.textContent = "";
+  setMessage(messageEl, "");
+}
+
+function setMessage(element, text, type = "") {
+  element.textContent = text;
+  element.className = type ? `auth-message ${type}` : "auth-message";
 }
 
 // Role switching
@@ -38,8 +44,8 @@ teacherRole.addEventListener("click", () => {
   adminRole.classList.remove("active");
   teacherSection.classList.add("active");
   adminSection.classList.remove("active");
-  messageEl.textContent = "";
-  adminMessageEl.textContent = "";
+  setMessage(messageEl, "");
+  setMessage(adminMessageEl, "");
 });
 
 adminRole.addEventListener("click", () => {
@@ -47,8 +53,8 @@ adminRole.addEventListener("click", () => {
   teacherRole.classList.remove("active");
   adminSection.classList.add("active");
   teacherSection.classList.remove("active");
-  messageEl.textContent = "";
-  adminMessageEl.textContent = "";
+  setMessage(messageEl, "");
+  setMessage(adminMessageEl, "");
 });
 
 showLogin.addEventListener("click", () => showForm(loginForm));
@@ -66,20 +72,24 @@ async function handleSubmit(url, body, successMessage, redirect) {
     const data = await response.json();
 
     if (response.ok) {
-      messageEl.textContent = successMessage || data.message;
+      let text = successMessage || data.message;
       if (data.resetCode) {
-        messageEl.textContent += ` Your reset code: ${data.resetCode}`;
+        text += ` Reset code: ${data.resetCode}`;
       }
+      setMessage(messageEl, text, data.emailConfigured === false ? "warning" : "success");
       if (redirect) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "teacher");
         window.location.href = redirect;
       }
+      return data;
     } else {
-      messageEl.textContent = data.message || "Something went wrong.";
+      setMessage(messageEl, data.message || "Something went wrong.", "error");
+      return null;
     }
   } catch (error) {
-    messageEl.textContent = "Server error. Please try again later.";
+    setMessage(messageEl, "Server error. Please try again later.", "error");
+    return null;
   }
 }
 
@@ -94,7 +104,7 @@ async function handleAdminSubmit(url, body, successMessage, redirect) {
     const data = await response.json();
 
     if (response.ok) {
-      adminMessageEl.textContent = successMessage || data.message;
+      setMessage(adminMessageEl, successMessage || data.message, "success");
       if (redirect) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "admin");
@@ -103,10 +113,10 @@ async function handleAdminSubmit(url, body, successMessage, redirect) {
         }, 1000);
       }
     } else {
-      adminMessageEl.textContent = data.message || "Something went wrong.";
+      setMessage(adminMessageEl, data.message || "Something went wrong.", "error");
     }
   } catch (error) {
-    adminMessageEl.textContent = "Server error. Please try again later.";
+    setMessage(adminMessageEl, "Server error. Please try again later.", "error");
   }
 }
 
@@ -125,11 +135,19 @@ registerForm.addEventListener("submit", (e) => {
   handleSubmit("/api/auth/register", { name, email, password }, "Account created successfully. Please sign in.");
 });
 
-forgotForm.addEventListener("submit", (e) => {
+forgotForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("forgotEmail").value.trim();
-  handleSubmit("/api/auth/forgot-password", { email }, "Reset code requested.");
-  showForm(resetForm);
+  const data = await handleSubmit("/api/auth/forgot-password", { email }, "Reset code requested.");
+  if (data) {
+    document.getElementById("resetEmail").value = email;
+    showForm(resetForm);
+    setMessage(
+      messageEl,
+      data.resetCode ? `Reset code: ${data.resetCode}` : data.message || "Reset code sent. Check your inbox.",
+      data.emailConfigured === false ? "warning" : "success"
+    );
+  }
 });
 
 resetForm.addEventListener("submit", (e) => {
@@ -145,6 +163,13 @@ adminLoginForm.addEventListener("submit", (e) => {
   const username = document.getElementById("adminUsername").value.trim();
   const password = document.getElementById("adminPassword").value;
   handleAdminSubmit("/api/admin/login", { username, password }, "Admin login successful.", "admin-dashboard.html");
+});
+
+socialButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const provider = button.dataset.provider;
+    setMessage(messageEl, `${provider} sign in needs OAuth credentials before it can be enabled.`, "warning");
+  });
 });
 
 showForm(loginForm);
