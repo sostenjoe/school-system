@@ -72,11 +72,7 @@ async function handleSubmit(url, body, successMessage, redirect) {
     const data = await response.json();
 
     if (response.ok) {
-      let text = successMessage || data.message;
-      if (data.resetCode) {
-        text += ` Reset code: ${data.resetCode}`;
-      }
-      setMessage(messageEl, text, data.emailConfigured === false ? "warning" : "success");
+      setMessage(messageEl, successMessage || data.message, "success");
       if (redirect) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "teacher");
@@ -138,15 +134,11 @@ registerForm.addEventListener("submit", (e) => {
 forgotForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("forgotEmail").value.trim();
-  const data = await handleSubmit("/api/auth/forgot-password", { email }, "Reset code requested.");
+  const data = await handleSubmit("/api/auth/forgot-password", { email });
   if (data) {
     document.getElementById("resetEmail").value = email;
     showForm(resetForm);
-    setMessage(
-      messageEl,
-      data.resetCode ? `Reset code: ${data.resetCode}` : data.message || "Reset code sent. Check your inbox.",
-      data.emailConfigured === false ? "warning" : "success"
-    );
+    setMessage(messageEl, data.message || "Reset code sent. Check your inbox.", "success");
   }
 });
 

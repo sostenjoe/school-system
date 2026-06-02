@@ -1,46 +1,10 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
 
 const Teacher = require("../models/Teacher");
+const { sendPasswordResetEmail } = require("../utils/emailService");
 
 const passwordResetCodes = new Map();
-
-const smtpTransport = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.example.com",
-    port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-        user: process.env.SMTP_USER || "your-smtp-user",
-        pass: process.env.SMTP_PASS || "your-smtp-pass"
-    }
-});
-
-function hasConfiguredSmtp() {
-    const user = process.env.SMTP_USER || "";
-    const pass = process.env.SMTP_PASS || "";
-    return Boolean(
-        process.env.SMTP_HOST &&
-        user &&
-        pass &&
-        user !== "your_email@gmail.com" &&
-        pass !== "your_app_specific_password" &&
-        !user.includes("your-smtp-user") &&
-        !pass.includes("your-smtp-pass")
-    );
-}
-
-async function sendResetEmail(email, code) {
-    const mailOptions = {
-        from: process.env.SMTP_FROM || "no-reply@school-system.com",
-        to: email,
-        subject: "Teacher Portal Password Reset Code",
-        text: `Your password reset code is: ${code}. It expires in 15 minutes.`,
-        html: `<p>Your password reset code is: <strong>${code}</strong>.</p><p>The code expires in 15 minutes.</p>`
-    };
-
-    await smtpTransport.sendMail(mailOptions);
-}
 
 
 exports.register = async (req, res) => {
@@ -109,7 +73,7 @@ exports.login = (req, res) => {
 };
 
 exports.forgotPassword = async (req, res) => {
-    const { email } = req.body;
+    const email = req.body.email?.trim();
 
     if (!email) {
         return res.status(400).json({ message: "Please provide your email." });
@@ -120,37 +84,29 @@ exports.forgotPassword = async (req, res) => {
             return res.status(500).json(err);
         }
 
-        if (!result || result.length === 0) {
-            return res.status(404).json({ message: "Teacher not found." });
+        if (!result) {
+            return res.json({ message: "If that teacher account exists, a reset code has been sent to the email." });
         }
 
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = Date.now() + 15 * 60 * 1000;
 
-        passwordResetCodes.set(email, { code, expiresAt });
-
-        if (!hasConfiguredSmtp()) {
-            return res.json({
-                message: "Email is not configured yet. Use the reset code shown below for local testing.",
-                resetCode: code,
-                emailConfigured: false
-            });
-        }
-
         try {
-            await sendResetEmail(email, code);
-            res.json({ message: "Reset code sent to your email. Check your inbox.", emailConfigured: true });
+            await sendPasswordResetEmail(email, code);
+            passwordResetCodes.set(email, { code, expiresAt });
+            res.json({ message: "Reset code sent to your email. Check your inbox." });
         } catch (emailError) {
-            console.error("SMTP error:", emailError);
+            console.error("Password reset email error:", emailError);
             res.status(500).json({
-                message: "Unable to send reset code email. Check SMTP_USER and SMTP_PASS in your .env file."
+                message: "Unable to send reset code email. Please check the email configuration."
             });
         }
     });
 };
 
 exports.resetPassword = async (req, res) => {
-    const { email, code, password } = req.body;
+    const email = req.body.email?.trim();
+    const { code, password } = req.body;
 
     if (!email || !code || !password) {
         return res.status(400).json({ message: "Email, code and new password are required." });
