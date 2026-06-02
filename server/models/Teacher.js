@@ -1,54 +1,55 @@
-const db = require("../config/db");
+const { query } = require("../config/db");
 
 const Teacher = {
-    create: (data, callback) => {
+    create: async (data) => {
         const sql = `
-         INSERT INTO teachers (name, email, password, subject_id)
-         VALUES (?, ?, ?, ?)
+            INSERT INTO teachers (name, email, password, subject_id)
+            VALUES (?, ?, ?, ?)
         `;
-        db.run(sql, [data.name, data.email, data.password, data.subject_id || null], function(err) {
-            callback(err, { insertId: this.lastID });
-        });
+        const result = await query(sql, [data.name, data.email, data.password, data.subject_id || null]);
+        return { insertId: result.insertId };
     },
 
-    findByEmail: (email, callback) => {
+    findByEmail: async (email) => {
         const sql = "SELECT * FROM teachers WHERE email = ?";
-        db.get(sql, [email], callback);
+        const rows = await query(sql, [email]);
+        return rows[0] || null;
     },
 
-    findById: (id, callback) => {
+    findById: async (id) => {
         const sql = "SELECT * FROM teachers WHERE id = ?";
-        db.get(sql, [id], callback);
+        const rows = await query(sql, [id]);
+        return rows[0] || null;
     },
 
-    getAll: (callback) => {
+    getAll: async () => {
         const sql = `
             SELECT t.id, t.name, t.email, t.subject_id, s.subject_name, t.created_at
             FROM teachers t
             LEFT JOIN subjects s ON t.subject_id = s.id
             ORDER BY t.name
         `;
-        db.all(sql, callback);
+        return await query(sql);
     },
 
-    updatePasswordByEmail: (email, password, callback) => {
+    updatePasswordByEmail: async (email, password) => {
         const sql = "UPDATE teachers SET password = ? WHERE email = ?";
-        db.run(sql, [password, email], callback);
+        await query(sql, [password, email]);
     },
 
-    assignSubject: (teacherId, subjectId, callback) => {
+    assignSubject: async (teacherId, subjectId) => {
         const sql = "UPDATE teachers SET subject_id = ? WHERE id = ?";
-        db.run(sql, [subjectId, teacherId], callback);
+        await query(sql, [subjectId, teacherId]);
     },
 
-    getBySubject: (subjectId, callback) => {
+    getBySubject: async (subjectId) => {
         const sql = `
             SELECT t.id, t.name, t.email, s.subject_name
             FROM teachers t
             LEFT JOIN subjects s ON t.subject_id = s.id
             WHERE t.subject_id = ?
         `;
-        db.all(sql, [subjectId], callback);
+        return await query(sql, [subjectId]);
     }
 };
 

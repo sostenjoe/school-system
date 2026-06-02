@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Results</title>
+<link rel="stylesheet" href="../../style.css">
+<style>
+    .filters {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: end;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .filter-group select, .filter-group input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .btn-filter {
+        padding: 8px 20px;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .btn-filter:hover {
+        background: #34495e;
+    }
+    
+    .results-table {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .results-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .results-table th {
+        background: #2c3e50;
+        color: white;
+        padding: 12px 8px;
+        text-align: left;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    
+    .results-table td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+    }
+    
+    .results-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .results-table tr:nth-child(even) {
+        background: #f8f9fa;
+    }
+    
+    .results-table tr:nth-child(even):hover {
+        background: #e9ecef;
+    }
+    
+    .grade-a { color: #27ae60; font-weight: bold; }
+    .grade-b { color: #2980b9; font-weight: bold; }
+    .grade-c { color: #f39c12; font-weight: bold; }
+    .grade-d { color: #e67e22; font-weight: bold; }
+    .grade-e { color: #e74c3c; font-weight: bold; }
+    .grade-f { color: #c0392b; font-weight: bold; }
+    
+    .mark-blank {
+        color: #ccc;
+        font-style: italic;
+    }
+    
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .summary-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .summary-card h3 {
+        color: #7f8c8d;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .summary-card .value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+        background: white;
+        border-radius: 8px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="sidebar">
+
+<h2>School System</h2>
+
+<nav>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="teacher-portal.html">Teacher Portal</a>
+  <a href="admin-submissions.html">Submission Status</a>
+  <a href="admin-results.html" class="active">Admin Results</a>
+  <a href="report.html">Final Reports</a>
+  <a href="login.html">Logout</a>
+</nav>
+
+</div>
+
+<div class="main">
+
+<h1>Class Results Analysis</h1>
+
+<!-- Filters -->
+<div class="filters">
+    <div class="filter-group">
+        <label for="classFilter">Class</label>
+        <select id="classFilter">
+            <option value="">All Classes</option>
+            <option value="Form 1">Form 1</option>
+            <option value="Form 2">Form 2</option>
+            <option value="Form 3">Form 3</option>
+            <option value="Form 4">Form 4</option>
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <label for="resultTypeFilter">Exam Type</label>
+        <select id="resultTypeFilter">
+            <option value="terminal">Terminal</option>
+            <option value="mid_term">Mid Term</option>
+            <option value="end_term">End Term</option>
+            <option value="assignment">Assignment</option>
+            <option value="exam">Exam</option>
+        </select>
+    </div>
+    
+    <button class="btn-filter" onclick="loadResults()">Load Results</button>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-cards" id="summaryCards" style="display: none;">
+    <div class="summary-card">
+        <h3>Total Students</h3>
+        <div class="value" id="totalStudents">0</div>
+    </div>
+    <div class="summary-card">
+        <h3>Class Average</h3>
+        <div class="value" id="classAverage">0%</div>
+    </div>
+    <div class="summary-card">
+        <h3>Highest Score</h3>
+        <div class="value" id="highestScore">0%</div>
+    </div>
+    <div class="summary-card">
+        <h3>Lowest Score</h3>
+        <div class="value" id="lowestScore">0%</div>
+    </div>
+</div>
+
+<!-- Results Table -->
+<div class="results-table" id="resultsTable" style="display: none;">
+    <table>
+        <thead>
+            <tr>
+                <th>Position</th>
+                <th>Student Name</th>
+                <th>Gender</th>
+                <th id="subjectHeader">Subjects</th>
+                <th>Total</th>
+                <th>Average</th>
+                <th>Grade</th>
+            </tr>
+        </thead>
+        <tbody id="resultsTableBody">
+        </tbody>
+    </table>
+</div>
+
+<div class="loading" id="loading">Loading results...</div>
+<div class="no-data" id="noData" style="display: none;">No results found for the selected filters.</div>
+
+</div>
+
+</div>
+
+<script>
+// Get subjects
+let subjects = [];
+
+async function loadSubjects() {
+    try {
+        const response = await fetch('http://localhost:5000/api/subjects');
+        subjects = await response.json();
+    } catch (error) {
+        console.error('Error loading subjects:', error);
+    }
+}
+
+async function loadResults() {
+    const className = document.getElementById('classFilter').value;
+    const resultType = document.getElementById('resultTypeFilter').value;
+    
+    if (!className) {
+        alert('Please select a class');
+        return;
+    }
+    
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultsTable').style.display = 'none';
+    document.getElementById('summaryCards').style.display = 'none';
+    document.getElementById('noData').style.display = 'none';
+    
+    try {
+        // Load students for the class
+        const studentsResponse = await fetch(`http://localhost:5000/api/students/class/${encodeURIComponent(className)}`);
+        const students = await studentsResponse.json();
+        
+        // Load results for each subject
+        const allResults = {};
+        for (const subject of subjects) {
+            const response = await fetch(
+                `http://localhost:5000/api/results/class/${encodeURIComponent(className)}/subject/${subject.id}?result_type=${resultType}`
+            );
+            const results = await response.json();
+            allResults[subject.id] = results;
+        }
+        
+        // Calculate totals and averages for each student
+        const studentResults = students.map(student => {
+            let total = 0;
+            let count = 0;
+            const marks = {};
+            
+            for (const subject of subjects) {
+                const result = allResults[subject.id].find(r => r.student_id === student.id);
+                if (result && result.marks !== null) {
+                    marks[subject.id] = result.marks;
+                    total += result.marks;
+                    count++;
+                } else {
+                    marks[subject.id] = null;
+                }
+            }
+            
+            const average = count > 0 ? (total / count) : 0;
+            const grade = calculateGrade(average);
+            
+            return {
+                ...student,
+                marks,
+                total,
+                average,
+                grade
+            };
+        });
+        
+        // Sort by total (descending) and assign positions
+        studentResults.sort((a, b) => b.total - a.total);
+        let position = 1;
+        for (let i = 0; i < studentResults.length; i++) {
+            if (i > 0 && studentResults[i].total < studentResults[i-1].total) {
+                position = i + 1;
+            }
+            studentResults[i].position = position;
+        }
+        
+        // Update summary
+        if (studentResults.length > 0) {
+            document.getElementById('totalStudents').textContent = studentResults.length;
+            document.getElementById('classAverage').textContent = 
+                Math.round(studentResults.reduce((sum, s) => sum + s.average, 0) / studentResults.length) + '%';
+            document.getElementById('highestScore').textContent = 
+                Math.round(Math.max(...studentResults.map(s => s.average))) + '%';
+            document.getElementById('lowestScore').textContent = 
+                Math.round(Math.min(...studentResults.map(s => s.average))) + '%';
+            document.getElementById('summaryCards').style.display = 'grid';
+        }
+        
+        // Render table
+        renderTable(studentResults);
+        
+        document.getElementById('loading').style.display = 'none';
+        if (studentResults.length === 0) {
+            document.getElementById('noData').style.display = 'block';
+        } else {
+            document.getElementById('resultsTable').style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error loading results:', error);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('noData').style.display = 'block';
+        document.getElementById('noData').textContent = 'Error loading results. Please try again.';
+    }
+}
+
+function renderTable(studentResults) {
+    const tbody = document.getElementById('resultsTableBody');
+    tbody.innerHTML = '';
+    
+    studentResults.forEach(student => {
+        const tr = document.createElement('tr');
+        
+        // Position
+        let td = document.createElement('td');
+        td.textContent = student.position;
+        td.style.fontWeight = 'bold';
+        td.style.color = student.position <= 3 ? '#2c3e50' : '#7f8c8d';
+        tr.appendChild(td);
+        
+        // Name
+        td = document.createElement('td');
+        td.textContent = student.name;
+        td.style.fontWeight = '500';
+        tr.appendChild(td);
+        
+        // Gender
+        td = document.createElement('td');
+        td.textContent = student.gender || '-';
+        tr.appendChild(td);
+        
+        // Subject marks
+        for (const subject of subjects) {
+            td = document.createElement('td');
+            const mark = student.marks[subject.id];
+            if (mark !== null && mark !== undefined) {
+                td.textContent = mark;
+                td.style.textAlign = 'center';
+            } else {
+                td.textContent = '-';
+                td.className = 'mark-blank';
+                td.style.textAlign = 'center';
+            }
+            tr.appendChild(td);
+        }
+        
+        // Total
+        td = document.createElement('td');
+        td.textContent = student.total;
+        td.style.fontWeight = 'bold';
+        td.style.textAlign = 'center';
+        tr.appendChild(td);
+        
+        // Average
+        td = document.createElement('td');
+        td.textContent = Math.round(student.average) + '%';
+        td.style.textAlign = 'center';
+        tr.appendChild(td);
+        
+        // Grade
+        td = document.createElement('td');
+        td.textContent = student.grade;
+        td.className = `grade-${student.grade.toLowerCase()}`;
+        td.style.textAlign = 'center';
+        tr.appendChild(td);
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function calculateGrade(marks) {
+    if (marks >= 80) return 'A';
+    if (marks >= 70) return 'B';
+    if (marks >= 60) return 'C';
+    if (marks >= 50) return 'D';
+    if (marks >= 40) return 'E';
+    return 'F';
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadSubjects();
+    // Auto-load results for first class if available
+    const classSelect = document.getElementById('classFilter');
+    if (classSelect.options.length > 1) {
+        classSelect.value = classSelect.options[1].value;
+        loadResults();
+    }
+});
+</script>
+
+</body>
+</html>

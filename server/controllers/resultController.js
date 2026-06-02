@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const { query } = require("../config/db");
 const Result = require("../models/Results");
 const calculateGrade = require("../utils/gradeCalculator");
 
@@ -9,178 +9,151 @@ function normalizeResultType(value) {
     return allowedResultTypes.has(type) ? type : "terminal";
 }
 
-exports.addResult = (req, res) => {
-    const { student_id, subject_id, teacher_id, marks } = req.body;
-    const authorId = req.teacher?.id || teacher_id;
-    const result_type = normalizeResultType(req.body.result_type);
+exports.addResult = async (req, res) => {
+    try {
+        const { student_id, subject_id, teacher_id, marks } = req.body;
+        const authorId = req.teacher?.id || teacher_id;
+        const result_type = normalizeResultType(req.body.result_type);
 
-    const grade = calculateGrade(marks);
+        const grade = calculateGrade(marks);
 
-    Result.create(
-        {
+        await Result.create({
             student_id,
             subject_id,
             teacher_id: authorId,
             marks,
             grade,
             result_type
-        },
-        (err) => {
-            if (err) {
-                return res.status(500).json({ error: err.message });
-            }
+        });
 
-            res.json({ message: "Result added successfully" });
-        }
-    );
+        res.json({ message: "Result added successfully" });
+    } catch (error) {
+        console.error("Add result error:", error);
+        res.status(500).json({ error: error.message });
+    }
 };
 
 exports.addBatchResults = async (req, res) => {
-    const { results } = req.body;
-    const authorId = req.teacher?.id;
-    const result_type = normalizeResultType(req.body.result_type);
-
-    if (!Array.isArray(results) || results.length === 0) {
-        return res.status(400).json({ message: "No result entries were provided." });
-    }
-
-    const entries = results.map((item) => ({
-        student_id: item.student_id,
-        subject_id: item.subject_id,
-        teacher_id: authorId,
-        marks: Number(item.marks),
-        grade: calculateGrade(Number(item.marks)),
-        result_type
-    }));
-
     try {
-        await Promise.all(
-            entries.map(
-                (entry) =>
-                    new Promise((resolve, reject) => {
-                        Result.createOrUpdate(entry, (err) => {
-                            if (err) {
-                                return reject(err);
-                            }
-                            resolve();
-                        });
-                    })
-            )
-        );
+        const { results } = req.body;
+        const authorId = req.teacher?.id;
+        const result_type = normalizeResultType(req.body.result_type);
+
+        if (!Array.isArray(results) || results.length === 0) {
+            return res.status(400).json({ message: "No result entries were provided." });
+        }
+
+        const entries = results.map((item) => ({
+            student_id: item.student_id,
+            subject_id: item.subject_id,
+            teacher_id: authorId,
+            marks: Number(item.marks),
+            grade: calculateGrade(Number(item.marks)),
+            result_type
+        }));
+
+        for (const entry of entries) {
+            await Result.createOrUpdate(entry);
+        }
+
         res.json({ message: "Batch results submitted successfully." });
     } catch (error) {
+        console.error("Batch results error:", error);
         res.status(500).json({ error: error.message || "Unable to save batch results." });
     }
 };
 
-exports.getResults = (req, res) => {
-    Result.getAll((err, result) => {
-        if (err) {
-            return res.status(500).json(err);
-        }
-
-        res.json(result);
-    });
+exports.getResults = async (req, res) => {
+    try {
+        const results = await Result.getAll();
+        res.json(results);
+    } catch (error) {
+        console.error("Get results error:", error);
+        res.status(500).json(error);
+    }
 };
 
-exports.getTeacherResults = (req, res) => {
-    const teacherId = req.teacher?.id;
+exports.getTeacherResults = async (req, res) => {
+    try {
+        const teacherId = req.teacher?.id;
 
-    if (!teacherId) {
-        return res.status(401).json({ message: "Unauthorized access." });
-    }
-
-    Result.getAll((err, allResults) => {
-        if (err) {
-            return res.status(500).json(err);
+        if (!teacherId) {
+            return res.status(401).json({ message: "Unauthorized access." });
         }
 
+        const allResults = await Result.getAll();
         const teacherResults = allResults.filter((result) => result.teacher_id === teacherId);
         res.json(teacherResults);
-    });
+    } catch (error) {
+        console.error("Get teacher results error:", error);
+        res.status(500).json(error);
+    }
 };
 
-exports.getResultsByClassSubject = (req, res) => {
-    const { className, subjectId } = req.params;
-    const resultType = normalizeResultType(req.query.result_type);
+exports.getResultsByClassSubject = async (req, res) => {
+    try {
+        const { className, subjectId } = req.params;
+        const resultType = normalizeResultType(req.query.result_type);
 
-    Result.getByClassAndSubject(className, subjectId, resultType, (err, result) => {
-        if (err) {
-            return res.status(500).json(err);
-        }
-
-        res.json(result);
-    });
+        const results = await Result.getByClassAndSubject(className, subjectId, resultType);
+        res.json(results);
+    } catch (error) {
+        console.error("Get results by class/subject error:", error);
+        res.status(500).json(error);
+    }
 };
 
-exports.getClassSummary = (req, res) => {
-    const sql = `
-      WITH class_totals AS (
-        SELECT class AS class_name, COUNT(*) AS total_students
-        FROM students
-        GROUP BY class
-      ),
-      result_stats AS (
-        SELECT
-          students.class AS class_name,
-          COALESCE(results.result_type, 'terminal') AS result_type,
-          COUNT(results.id) AS submitted_results,
-          ROUND(AVG(results.marks), 2) AS average_marks,
-          MIN(results.marks) AS lowest_marks,
-          MAX(results.marks) AS highest_marks,
-          COUNT(CASE WHEN results.marks >= 70 THEN 1 END) AS passing_results,
-          COUNT(CASE WHEN results.marks < 50 THEN 1 END) AS underperforming_results
-        FROM students
-        JOIN results ON results.student_id = students.id
-        GROUP BY students.class, COALESCE(results.result_type, 'terminal')
-      )
-      SELECT
-        class_totals.class_name,
-        COALESCE(result_stats.result_type, 'terminal') AS result_type,
-        class_totals.total_students,
-        COALESCE(result_stats.submitted_results, 0) AS submitted_results,
-        result_stats.average_marks,
-        result_stats.lowest_marks,
-        result_stats.highest_marks,
-        COALESCE(result_stats.passing_results, 0) AS passing_results,
-        COALESCE(result_stats.underperforming_results, 0) AS underperforming_results
-      FROM class_totals
-      LEFT JOIN result_stats ON result_stats.class_name = class_totals.class_name
-      ORDER BY class_totals.class_name, result_type
-    `;
+exports.getClassSummary = async (req, res) => {
+    try {
+        const sql = `
+            SELECT
+                s.class AS class_name,
+                COALESCE(r.result_type, 'terminal') AS result_type,
+                COUNT(DISTINCT s.id) AS total_students,
+                COUNT(r.id) AS submitted_results,
+                ROUND(AVG(r.marks), 2) AS average_marks,
+                MIN(r.marks) AS lowest_marks,
+                MAX(r.marks) AS highest_marks,
+                COUNT(CASE WHEN r.marks >= 70 THEN 1 END) AS passing_results,
+                COUNT(CASE WHEN r.marks < 50 THEN 1 END) AS underperforming_results
+            FROM students s
+            LEFT JOIN results r ON r.student_id = s.id
+            GROUP BY s.class, COALESCE(r.result_type, 'terminal')
+            ORDER BY s.class, result_type
+        `;
 
-    db.all(sql, (err, result) => {
-        if (err) {
-            return res.status(500).json({ message: err.message });
-        }
-
-        res.json(result || []);
-    });
+        const results = await query(sql);
+        res.json(results || []);
+    } catch (error) {
+        console.error("Get class summary error:", error);
+        res.status(500).json({ message: error.message });
+    }
 };
 
-exports.getSubmissionStatus = (req, res) => {
-    const sql = `
-      SELECT
-        students.class AS class_name,
-        subjects.subject_name,
-        COALESCE(results.result_type, 'terminal') AS result_type,
-        COALESCE(teachers.name, 'Unassigned') AS teacher_name,
-        COUNT(DISTINCT students.id) AS total_students,
-        COUNT(DISTINCT CASE WHEN results.id IS NOT NULL THEN students.id END) AS submitted_students,
-        COUNT(DISTINCT students.id) - COUNT(DISTINCT CASE WHEN results.id IS NOT NULL THEN students.id END) AS missing_students
-      FROM students
-      CROSS JOIN subjects
-      LEFT JOIN results ON results.student_id = students.id
-        AND results.subject_id = subjects.id
-      LEFT JOIN teachers ON results.teacher_id = teachers.id
-      GROUP BY students.class, subjects.id, result_type, teachers.id, teacher_name
-      ORDER BY students.class, subjects.subject_name, result_type, teacher_name
-    `;
+exports.getSubmissionStatus = async (req, res) => {
+    try {
+        const sql = `
+            SELECT
+                s.class AS class_name,
+                sub.subject_name,
+                COALESCE(r.result_type, 'terminal') AS result_type,
+                COALESCE(t.name, 'Unassigned') AS teacher_name,
+                COUNT(DISTINCT s.id) AS total_students,
+                COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN s.id END) AS submitted_students,
+                COUNT(DISTINCT s.id) - COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN s.id END) AS missing_students
+            FROM students s
+            CROSS JOIN subjects sub
+            LEFT JOIN results r ON r.student_id = s.id
+                AND r.subject_id = sub.id
+            LEFT JOIN teachers t ON r.teacher_id = t.id
+            GROUP BY s.class, sub.id, COALESCE(r.result_type, 'terminal'), t.id, t.name
+            ORDER BY s.class, sub.subject_name, result_type, t.name
+        `;
 
-    db.all(sql, (err, result) => {
-        if (err) {
-            return res.status(500).json(err);
-        }
-        res.json(result);
-    });
+        const results = await query(sql);
+        res.json(results);
+    } catch (error) {
+        console.error("Get submission status error:", error);
+        res.status(500).json(error);
+    }
 };
