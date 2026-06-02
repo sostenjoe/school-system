@@ -291,7 +291,8 @@ if (isProduction && process.env.DB_HOST) {
 
     async function query(sql, params = []) {
         return new Promise((resolve, reject) => {
-            if (sql.toUpperCase().startsWith('SELECT')) {
+            const trimmedSql = sql.trim().toUpperCase();
+            if (trimmedSql.startsWith('SELECT')) {
                 db.all(sql, params, (err, rows) => {
                     if (err) reject(err);
                     else resolve(rows);

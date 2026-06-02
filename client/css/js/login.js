@@ -101,6 +101,9 @@ async function handleAdminSubmit(url, body, successMessage, redirect) {
 
     if (response.ok) {
       setMessage(adminMessageEl, successMessage || data.message, "success");
+      // Set green background for success
+      adminMessageEl.style.backgroundColor = "#22c55e";
+      adminMessageEl.style.color = "white";
       if (redirect) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "admin");
@@ -109,10 +112,16 @@ async function handleAdminSubmit(url, body, successMessage, redirect) {
         }, 1000);
       }
     } else {
-      setMessage(adminMessageEl, data.message || "Something went wrong.", "error");
+      setMessage(adminMessageEl, data.message || "Invalid username or password.", "error");
+      // Set red background for error
+      adminMessageEl.style.backgroundColor = "#ef4444";
+      adminMessageEl.style.color = "white";
     }
   } catch (error) {
     setMessage(adminMessageEl, "Server error. Please try again later.", "error");
+    // Set red background for error
+    adminMessageEl.style.backgroundColor = "#ef4444";
+    adminMessageEl.style.color = "white";
   }
 }
 
