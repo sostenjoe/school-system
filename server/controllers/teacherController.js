@@ -46,24 +46,33 @@ exports.getSubjects = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized access." });
         }
 
-        const sql = `
-            SELECT subjects.*
-            FROM subjects
-            JOIN teacher_subjects ON teacher_subjects.subject_id = subjects.id
-            WHERE teacher_subjects.teacher_id = ?
-        `;
-
-        const subjects = await query(sql, [teacherId]);
-        res.json(subjects || []);
-    } catch (error) {
-        // Fallback to all subjects if teacher_subjects table doesn't exist
+        // First try to get subjects from teacher_subjects junction table
         try {
-            const subjects = await Subject.getAll();
-            res.json(subjects);
-        } catch (fallbackError) {
-            console.error("Get subjects error:", fallbackError);
-            res.status(500).json({ message: fallbackError.message });
+            const sql = `
+                SELECT subjects.*
+                FROM subjects
+                JOIN teacher_subjects ON teacher_subjects.subject_id = subjects.id
+                WHERE teacher_subjects.teacher_id = ?
+            `;
+
+            const subjects = await query(sql, [teacherId]);
+            res.json(Array.isArray(subjects) ? subjects : []);
+        } catch (junctionError) {
+            // If teacher_subjects table doesn't exist, fall back to teacher's subject_id
+            const teacher = await Teacher.findById(teacherId);
+            if (teacher && teacher.subject_id) {
+                const sql = "SELECT * FROM subjects WHERE id = ?";
+                const subjects = await query(sql, [teacher.subject_id]);
+                res.json(Array.isArray(subjects) ? subjects : []);
+            } else {
+                // Return all subjects if teacher has no subject assigned
+                const subjects = await Subject.getAll();
+                res.json(Array.isArray(subjects) ? subjects : []);
+            }
         }
+    } catch (error) {
+        console.error("Get subjects error:", error);
+        res.status(500).json({ message: error.message });
     }
 };
 

@@ -1,23 +1,26 @@
 const db = require("../config/db");
 
 const Admin = {
-    findByUsername: (username, callback) => {
+    findByUsername: async (username) => {
         const sql = "SELECT * FROM admins WHERE username = ?";
-        db.get(sql, [username], callback);
+        const rows = await db.query(sql, [username]);
+        return rows[0] || null;
     },
 
-    findById: (id, callback) => {
+    findById: async (id) => {
         const sql = "SELECT * FROM admins WHERE id = ?";
-        db.get(sql, [id], callback);
+        const rows = await db.query(sql, [id]);
+        return rows[0] || null;
     },
 
-    updateCredentials: (id, username, password, callback) => {
+    updateCredentials: async (id, username, password) => {
         const sql = "UPDATE admins SET username = ?, password = ? WHERE id = ?";
-        db.run(sql, [username, password, id], callback);
+        await db.query(sql, [username, password, id]);
     },
 
-    getAll: (callback) => {
-        db.all("SELECT id, username FROM admins", callback);
+    getAll: async () => {
+        const sql = "SELECT id, username FROM admins";
+        return await db.query(sql);
     }
 };
 
