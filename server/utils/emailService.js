@@ -8,6 +8,7 @@ function getEmailConfig() {
     // Remove surrounding quotes from password if present
     rawPass = rawPass.replace(/^["']|["']$/g, '').trim();
     
+    // For Gmail, remove spaces from the password (app passwords are often written with spaces)
     const pass = service.toLowerCase() === "gmail" ? rawPass.replace(/\s+/g, "") : rawPass;
 
     return {
@@ -15,8 +16,10 @@ function getEmailConfig() {
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
         secure: process.env.SMTP_SECURE === "true",
-        user,
-        pass,
+        auth: {
+            user,
+            pass
+        },
         from: process.env.SMTP_FROM || user
     };
 }
