@@ -56,8 +56,8 @@ textarea {
   min-height: 100vh;
   /* Professional school background with overlay */
   background: 
-    linear-gradient(135deg, rgba(30, 58, 138, 0.85) 0%, rgba(129, 38, 78, 0.85) 100%),
-    url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&q=80') center/cover no-repeat fixed;
+    linear-gradient(135deg, rgba(30, 58, 138, 0.8) 0%, rgba(129, 38, 78, 0.8) 100%),
+    url('https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat fixed;
   padding: 24px;
   position: relative;
   overflow: hidden;
@@ -69,10 +69,10 @@ textarea {
   position: absolute;
   top: -50%;
   right: -10%;
-  width: 500px;
-  height: 500px;
+  width: 600px;
+  height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
   animation: float 20s ease-in-out infinite;
 }
 
@@ -81,10 +81,10 @@ textarea {
   position: absolute;
   bottom: -20%;
   left: -5%;
-  width: 400px;
-  height: 400px;
+  width: 500px;
+  height: 500px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
   animation: float 25s ease-in-out infinite reverse;
 }
 

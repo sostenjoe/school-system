@@ -3,7 +3,11 @@ const nodemailer = require("nodemailer");
 function getEmailConfig() {
     const service = process.env.SMTP_SERVICE || "gmail";
     const user = process.env.SMTP_USER || "";
-    const rawPass = process.env.SMTP_PASS || "";
+    let rawPass = process.env.SMTP_PASS || "";
+    
+    // Remove surrounding quotes from password if present
+    rawPass = rawPass.replace(/^["']|["']$/g, '').trim();
+    
     const pass = service.toLowerCase() === "gmail" ? rawPass.replace(/\s+/g, "") : rawPass;
 
     return {
