@@ -10,7 +10,8 @@ const subjectOrderSql = defaultSubjectNames
 async function ensureDefaultSubjects() {
     for (const subject of DEFAULT_SUBJECTS) {
         try {
-            await query("INSERT IGNORE INTO subjects (subject_name) VALUES (?)", [subject]);
+            // Use INSERT OR IGNORE for SQLite compatibility
+            await query("INSERT OR IGNORE INTO subjects (subject_name) VALUES (?)", [subject]);
         } catch (err) {
             console.error('Error ensuring default subject:', err.message);
         }
@@ -27,17 +28,8 @@ const Subject = {
     getAll: async () => {
         await ensureDefaultSubjects();
         
-        const sql = `
-            SELECT id, subject_name
-            FROM subjects
-            WHERE lower(subject_name) IN (${subjectPlaceholders})
-            ORDER BY CASE lower(subject_name)
-                ${subjectOrderSql}
-                ELSE ${DEFAULT_SUBJECTS.length}
-            END
-        `;
-        
-        return await query(sql, [...defaultSubjectNames, ...defaultSubjectNames]);
+        const sql = "SELECT id, subject_name FROM subjects ORDER BY subject_name";
+        return await query(sql);
     }
 };
 

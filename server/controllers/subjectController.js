@@ -1,23 +1,24 @@
 const Subject = require("../models/Subject");
 
-exports.addSubject = (req, res) => {
-    Subject.create(req.body, (err, result) => {
-        if (err) {
-            return res.status(500).json(err);
-        }
-
+exports.addSubject = async (req, res) => {
+    try {
+        const result = await Subject.create(req.body);
         res.json({
-            message: "Subject added successfully"
+            message: "Subject added successfully",
+            id: result.insertId
         });
-    });
+    } catch (error) {
+        console.error("Add subject error:", error);
+        res.status(500).json({ message: error.message });
+    }
 };
 
-exports.getSubjects = (req, res) => {
-    Subject.getAll((err, result) => {
-        if (err) {
-            return res.status(500).json(err);
-        }
-
-        res.json(result);
-    });
+exports.getSubjects = async (req, res) => {
+    try {
+        const subjects = await Subject.getAll();
+        res.json(Array.isArray(subjects) ? subjects : []);
+    } catch (error) {
+        console.error("Get subjects error:", error);
+        res.status(500).json({ message: error.message });
+    }
 };
