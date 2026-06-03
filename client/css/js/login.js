@@ -173,4 +173,18 @@ socialButtons.forEach((button) => {
   });
 });
 
+// Password visibility toggle
+document.querySelectorAll('.toggle-password').forEach(button => {
+  button.addEventListener('click', function() {
+    const targetId = this.getAttribute('data-target');
+    const passwordInput = document.getElementById(targetId);
+    
+    if (passwordInput) {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      this.textContent = isPassword ? '🙈' : '👁️';
+    }
+  });
+});
+
 showForm(loginForm);
