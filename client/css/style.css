@@ -1265,3 +1265,50 @@ button.primary-button:active {
     padding: 10px 8px;
   }
 }
+
+/* Multi-select styles for subject assignment */
+.multi-select-container {
+  position: relative;
+}
+
+.multi-select-container select[multiple] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-secondary);
+  font-size: 0.95rem;
+  transition: var(--transition);
+  cursor: pointer;
+  min-height: 120px;
+}
+
+.multi-select-container select[multiple]:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.multi-select-container select[multiple] option {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.multi-select-container select[multiple] option:hover {
+  background: var(--primary-light);
+}
+
+.multi-select-container select[multiple] option:checked {
+  background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+  color: white;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-style: italic;
+}

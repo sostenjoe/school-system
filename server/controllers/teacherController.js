@@ -79,10 +79,23 @@ exports.getSubjects = async (req, res) => {
 exports.assignSubjectToTeacher = async (req, res) => {
     try {
         const teacherId = Number(req.params.teacherId);
-        const subjectId = Number(req.body.subjectId);
+        // Support both single subjectId and array of subjectIds
+        let subjectIds = req.body.subjectIds || req.body.subjectId;
+        
+        // Convert single value to array
+        if (!Array.isArray(subjectIds)) {
+            subjectIds = subjectIds ? [subjectIds] : [];
+        }
+        
+        // Convert all to numbers
+        subjectIds = subjectIds.map(id => Number(id));
 
-        if (!teacherId || !subjectId) {
-            return res.status(400).json({ message: "Teacher ID and Subject ID are required." });
+        if (!teacherId) {
+            return res.status(400).json({ message: "Teacher ID is required." });
+        }
+
+        if (!subjectIds || subjectIds.length === 0) {
+            return res.status(400).json({ message: "At least one Subject ID is required." });
         }
 
         const teacher = await query("SELECT id FROM teachers WHERE id = ?", [teacherId]);
@@ -90,24 +103,21 @@ exports.assignSubjectToTeacher = async (req, res) => {
             return res.status(404).json({ message: "Teacher not found." });
         }
 
-        const subject = await query("SELECT id FROM subjects WHERE id = ?", [subjectId]);
-        if (!subject || subject.length === 0) {
-            return res.status(404).json({ message: "Subject not found." });
+        // Validate all subjects exist
+        const placeholders = subjectIds.map(() => "?").join(",");
+        const existingSubjects = await query(
+            `SELECT id FROM subjects WHERE id IN (${placeholders})`,
+            subjectIds
+        );
+        
+        if (existingSubjects.length !== subjectIds.length) {
+            return res.status(404).json({ message: "One or more subjects not found." });
         }
 
-        // Delete existing assignments
-        await query("DELETE FROM teacher_subjects WHERE teacher_id = ?", [teacherId]);
+        // Assign multiple subjects using the Teacher model
+        await Teacher.assignSubjects(teacherId, subjectIds);
 
-        // Insert new assignment
-        await query(
-            "INSERT INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)",
-            [teacherId, subjectId]
-        );
-
-        // Update teacher's primary subject
-        await Teacher.assignSubject(teacherId, subjectId);
-
-        res.json({ message: "Subject assigned to teacher successfully." });
+        res.json({ message: "Subjects assigned to teacher successfully." });
     } catch (error) {
         console.error("Assign subject to teacher error:", error);
         res.status(500).json({ message: error.message });
@@ -117,25 +127,29 @@ exports.assignSubjectToTeacher = async (req, res) => {
 exports.assignSubject = async (req, res) => {
     try {
         const teacherId = req.teacher?.id;
-        const { subjectId } = req.body;
+        // Support both single subjectId and array of subjectIds
+        let subjectIds = req.body.subjectIds || req.body.subjectId;
+        
+        // Convert single value to array
+        if (!Array.isArray(subjectIds)) {
+            subjectIds = subjectIds ? [subjectIds] : [];
+        }
+        
+        // Convert all to numbers
+        subjectIds = subjectIds.map(id => Number(id));
 
-        if (!teacherId || !subjectId) {
-            return res.status(400).json({ message: "Teacher ID and Subject ID required." });
+        if (!teacherId) {
+            return res.status(400).json({ message: "Teacher ID is required." });
         }
 
-        // Update teacher's primary subject
-        await Teacher.assignSubject(teacherId, subjectId);
+        if (!subjectIds || subjectIds.length === 0) {
+            return res.status(400).json({ message: "At least one Subject ID is required." });
+        }
 
-        // Delete existing assignments
-        await query("DELETE FROM teacher_subjects WHERE teacher_id = ?", [teacherId]);
+        // Assign multiple subjects using the Teacher model
+        await Teacher.assignSubjects(teacherId, subjectIds);
 
-        // Insert new assignment
-        await query(
-            "INSERT INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)",
-            [teacherId, subjectId]
-        );
-
-        res.json({ message: "Subject assigned successfully" });
+        res.json({ message: "Subjects assigned successfully" });
     } catch (error) {
         console.error("Assign subject error:", error);
         res.status(500).json({ message: error.message });

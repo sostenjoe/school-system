@@ -29,7 +29,26 @@ const Teacher = {
             LEFT JOIN subjects s ON t.subject_id = s.id
             ORDER BY t.name
         `;
-        return await query(sql);
+        const teachers = await query(sql);
+        
+        // Get all subjects for each teacher from teacher_subjects junction table
+        for (const teacher of teachers) {
+            try {
+                const subjectsSql = `
+                    SELECT s.id, s.subject_name
+                    FROM subjects s
+                    JOIN teacher_subjects ts ON ts.subject_id = s.id
+                    WHERE ts.teacher_id = ?
+                `;
+                const subjects = await query(subjectsSql, [teacher.id]);
+                teacher.subjects = subjects || [];
+            } catch (e) {
+                // If teacher_subjects table doesn't exist, use the single subject
+                teacher.subjects = teacher.subject_id ? [{ id: teacher.subject_id, subject_name: teacher.subject_name }] : [];
+            }
+        }
+        
+        return teachers;
     },
 
     updatePasswordByEmail: async (email, password) => {
@@ -40,6 +59,47 @@ const Teacher = {
     assignSubject: async (teacherId, subjectId) => {
         const sql = "UPDATE teachers SET subject_id = ? WHERE id = ?";
         await query(sql, [subjectId, teacherId]);
+    },
+
+    // Assign multiple subjects to a teacher
+    assignSubjects: async (teacherId, subjectIds) => {
+        // Update the primary subject (first one)
+        if (subjectIds && subjectIds.length > 0) {
+            await query("UPDATE teachers SET subject_id = ? WHERE id = ?", [subjectIds[0], teacherId]);
+            
+            // Clear existing subject assignments
+            await query("DELETE FROM teacher_subjects WHERE teacher_id = ?", [teacherId]);
+            
+            // Insert new subject assignments
+            for (const subjectId of subjectIds) {
+                await query(
+                    "INSERT OR IGNORE INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)",
+                    [teacherId, subjectId]
+                );
+            }
+        }
+    },
+
+    // Get all subjects assigned to a teacher
+    getSubjects: async (teacherId) => {
+        try {
+            const sql = `
+                SELECT s.id, s.subject_name
+                FROM subjects s
+                JOIN teacher_subjects ts ON ts.subject_id = s.id
+                WHERE ts.teacher_id = ?
+            `;
+            const subjects = await query(sql, [teacherId]);
+            return subjects || [];
+        } catch (e) {
+            // If teacher_subjects table doesn't exist, fall back to single subject
+            const teacher = await query("SELECT subject_id FROM teachers WHERE id = ?", [teacherId]);
+            if (teacher && teacher[0] && teacher[0].subject_id) {
+                const subject = await query("SELECT id, subject_name FROM subjects WHERE id = ?", [teacher[0].subject_id]);
+                return subject || [];
+            }
+            return [];
+        }
     },
 
     getBySubject: async (subjectId) => {

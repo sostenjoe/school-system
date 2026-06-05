@@ -86,6 +86,8 @@ if (isProduction && process.env.DB_HOST) {
                     marks DECIMAL(5,2),
                     grade VARCHAR(2),
                     result_type VARCHAR(50) DEFAULT 'terminal',
+                    academic_year INT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (student_id) REFERENCES students (id) ON DELETE CASCADE,
                     FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE,
                     FOREIGN KEY (teacher_id) REFERENCES teachers (id) ON DELETE SET NULL
@@ -224,6 +226,8 @@ if (isProduction && process.env.DB_HOST) {
                     marks REAL,
                     grade TEXT,
                     result_type TEXT DEFAULT 'terminal',
+                    academic_year INTEGER,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (student_id) REFERENCES students (id) ON DELETE CASCADE,
                     FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE,
                     FOREIGN KEY (teacher_id) REFERENCES teachers (id) ON DELETE SET NULL

@@ -58,7 +58,7 @@ function renderSubjectOptions(subjects) {
     return;
   }
 
-  subjectSelect.innerHTML = "<option value=\"\">Select subject</option>";
+  subjectSelect.innerHTML = "";
   subjects.forEach((subject) => {
     const option = document.createElement("option");
     option.value = subject.id;
@@ -84,6 +84,29 @@ async function loadAssignmentData() {
   }
 }
 
+// Function to get selected subjects from multi-select
+function getSelectedSubjects() {
+  const selected = Array.from(subjectSelect.selectedOptions).map(option => Number(option.value));
+  return selected;
+}
+
+// Function to select subjects for a teacher (for editing)
+function selectSubjectsForTeacher(subjectIds) {
+  // Clear current selection
+  for (let i = 0; i < subjectSelect.options.length; i++) {
+    subjectSelect.options[i].selected = false;
+  }
+  
+  // Select the specified subjects
+  if (subjectIds && subjectIds.length > 0) {
+    for (let i = 0; i < subjectSelect.options.length; i++) {
+      if (subjectIds.includes(Number(subjectSelect.options[i].value))) {
+        subjectSelect.options[i].selected = true;
+      }
+    }
+  }
+}
+
 backBtn.addEventListener("click", () => {
   window.location.href = "admin-dashboard.html";
 });
@@ -92,10 +115,15 @@ assignmentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const teacherId = teacherSelect.value;
-  const subjectId = subjectSelect.value;
+  const subjectIds = getSelectedSubjects();
 
-  if (!teacherId || !subjectId) {
-    showMessage(assignmentMessageEl, "Please choose both a teacher and a subject.", "error");
+  if (!teacherId) {
+    showMessage(assignmentMessageEl, "Please select a teacher.", "error");
+    return;
+  }
+
+  if (!subjectIds || subjectIds.length === 0) {
+    showMessage(assignmentMessageEl, "Please select at least one subject.", "error");
     return;
   }
 
@@ -103,22 +131,40 @@ assignmentForm.addEventListener("submit", async (e) => {
     const response = await fetch(`/api/teachers/${teacherId}/subject`, {
       method: "PUT",
       headers: authHeaders,
-      body: JSON.stringify({ subjectId })
+      body: JSON.stringify({ subjectIds })
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      showMessage(assignmentMessageEl, "Subject assigned successfully.", "success");
+      showMessage(assignmentMessageEl, "Subjects assigned successfully.", "success");
       await loadAssignmentData();
       teacherSelect.value = teacherId;
-      subjectSelect.value = subjectId;
     } else {
-      showMessage(assignmentMessageEl, data.message || "Failed to assign subject.", "error");
+      showMessage(assignmentMessageEl, data.message || "Failed to assign subjects.", "error");
     }
   } catch (error) {
     console.error("Assignment error:", error);
     showMessage(assignmentMessageEl, "Server error. Please try again later.", "error");
+  }
+});
+
+// When teacher selection changes, show their current subjects
+teacherSelect.addEventListener("change", async (e) => {
+  const teacherId = e.target.value;
+  if (!teacherId) return;
+  
+  try {
+    // Get the selected teacher's current subjects
+    const teachers = await fetchJson("/api/teachers", { headers: authHeaders });
+    const teacher = teachers.find(t => t.id == teacherId);
+    
+    if (teacher && teacher.subjects) {
+      const subjectIds = teacher.subjects.map(s => s.id);
+      selectSubjectsForTeacher(subjectIds);
+    }
+  } catch (error) {
+    console.error("Error loading teacher subjects:", error);
   }
 });
 
