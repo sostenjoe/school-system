@@ -89,7 +89,11 @@ async function loadClasses() {
   const teacherStandardGroups = (teacherStandardsResp && teacherStandardsResp.standardGroups) ? teacherStandardsResp.standardGroups : teacherStandardsResp;
   const standardGroups = Array.isArray(teacherStandardGroups) ? teacherStandardGroups : [];
 
+
+
+
   // Map: standard-group -> class labels so we can compare against student.class.
+
   // Expected student.class values are: "I", "II", ... "VII".
   const expandStandardGroups = (groups) => {
     const expanded = [];
@@ -97,12 +101,18 @@ async function loadClasses() {
       const key = String(g || "").trim().toUpperCase();
       if (!key) continue;
 
-      if (key === "I-II") expanded.push("I", "II");
+      // Input is expected to be individual standards stored in DB: "I", "II", "III", ... "VII".
+      // So we only expand to those exact individual class labels.
+      if (["I","II","III","IV","V","VI","VII"].includes(key)) {
+        expanded.push(key);
+      }
+
+      // Backward compat: if grouped keys exist, expand them to individual class labels.
+      else if (key === "I-II") expanded.push("I", "II");
       else if (key === "III-IV") expanded.push("III", "IV");
       else if (key === "V-VI") expanded.push("V", "VI");
-      else if (key === "V-VII") expanded.push("V", "VI", "VII"); // backward compat
+      else if (key === "V-VII") expanded.push("V", "VI", "VII");
       else if (key === "VII") expanded.push("VII");
-      else if (["I","II","III","IV","V","VI"].includes(key)) expanded.push(key);
     }
     return [...new Set(expanded)];
   };
