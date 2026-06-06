@@ -1,6 +1,16 @@
 const nodemailer = require("nodemailer");
 
+// Helpful for debugging: print which SMTP env vars are missing.
+// Kept lightweight so it won't spam normal operation unless SMTP is not configured.
+if (process.env.SMTP_SERVICE || process.env.SMTP_USER || process.env.SMTP_PASS || process.env.SMTP_FROM) {
+    // Only normalize if user actually configured something
+    if (process.env.SMTP_USER) process.env.SMTP_USER = String(process.env.SMTP_USER).replace(/^['"]|['"]$/g, '').trim();
+    if (process.env.SMTP_PASS) process.env.SMTP_PASS = String(process.env.SMTP_PASS).replace(/^['"]|['"]$/g, '').trim();
+    if (process.env.SMTP_FROM) process.env.SMTP_FROM = String(process.env.SMTP_FROM).replace(/^['"]|['"]$/g, '').trim();
+}
+
 function getEmailConfig() {
+
     const service = process.env.SMTP_SERVICE || "gmail";
     const user = process.env.SMTP_USER || "";
     let rawPass = process.env.SMTP_PASS || "";
@@ -27,16 +37,18 @@ function getEmailConfig() {
 function hasEmailConfig() {
     const config = getEmailConfig();
 
-    return Boolean(
-        config.user &&
-        config.pass &&
-        !config.user.includes("your-") &&
-        !config.pass.includes("your-")
-    );
+    // Allow common "placeholder" values to fail fast.
+    const userOk = Boolean(config.user) && !String(config.user).toLowerCase().includes("your-");
+    const passOk = Boolean(config.pass) && !String(config.pass).toLowerCase().includes("your-");
+
+    return userOk && passOk;
 }
 
 function createTransporter() {
     const config = getEmailConfig();
+
+    // Nodemailer needs secure=true only for port 465; for 587/STARTTLS keep secure=false.
+    const secure = process.env.SMTP_SECURE === "true";
 
     if (config.service) {
         return nodemailer.createTransport({
@@ -44,14 +56,16 @@ function createTransporter() {
             auth: {
                 user: config.user,
                 pass: config.pass
-            }
+            },
+            // Use STARTTLS for Gmail (usually port 587)
+            secure
         });
     }
 
     return nodemailer.createTransport({
         host: config.host,
         port: config.port,
-        secure: config.secure,
+        secure,
         auth: {
             user: config.user,
             pass: config.pass
@@ -59,13 +73,20 @@ function createTransporter() {
     });
 }
 
+
 async function sendPasswordResetEmail(email, code) {
     if (!hasEmailConfig()) {
-        throw new Error("Email is not configured.");
+        throw new Error("Email is not configured. Check SMTP_USER/SMTP_PASS/SMTP_FROM in your .env");
     }
+
+    // Ensure env vars are trimmed even if user put quotes in .env
+    if (process.env.SMTP_USER) process.env.SMTP_USER = String(process.env.SMTP_USER).replace(/^['"]|['"]$/g, '').trim();
+    if (process.env.SMTP_PASS) process.env.SMTP_PASS = String(process.env.SMTP_PASS).replace(/^['"]|['"]$/g, '').trim();
+    if (process.env.SMTP_FROM) process.env.SMTP_FROM = String(process.env.SMTP_FROM).replace(/^['"]|['"]$/g, '').trim();
 
     const config = getEmailConfig();
     const transporter = createTransporter();
+
 
     await transporter.sendMail({
         from: config.from,

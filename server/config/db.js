@@ -1,4 +1,6 @@
 const { DEFAULT_SUBJECTS } = require("../constants/subjects");
+const { STANDARD_SUBJECTS } = require("../constants/standardSubjects");
+
 
 // Determine which database to use based on NODE_ENV
 const isProduction = process.env.NODE_ENV === 'production';
@@ -120,8 +122,12 @@ if (isProduction && process.env.DB_HOST) {
                 console.error('Error initializing admin:', err.message);
             }
 
-            // Initialize default subjects
-            for (const subject of DEFAULT_SUBJECTS) {
+            // Initialize default subjects (includes Standard I–VII mapped subjects)
+            const allSubjectsToSeed = new Set(
+                [...DEFAULT_SUBJECTS, ...STANDARD_SUBJECTS["I-II"], ...STANDARD_SUBJECTS["III-IV"], ...STANDARD_SUBJECTS["V-VII"]]
+            );
+
+            for (const subject of allSubjectsToSeed) {
                 try {
                     await connection.execute(
                         'INSERT IGNORE INTO subjects (subject_name) VALUES (?)',
@@ -133,6 +139,8 @@ if (isProduction && process.env.DB_HOST) {
             }
 
             console.log('Database tables initialized successfully');
+            
+
             
         } catch (err) {
             console.error('Error initializing tables:', err.message);
@@ -168,7 +176,17 @@ if (isProduction && process.env.DB_HOST) {
     const bcrypt = require("bcryptjs");
     
     const dbPath = path.join(process.cwd(), 'school_system.db');
-    const db = new sqlite3.Database(dbPath);
+            const db = new sqlite3.Database(dbPath);
+
+    function runAsync(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            db.run(sql, params, function (err) {
+                if (err) reject(err);
+                else resolve({ insertId: this.lastID, changes: this.changes });
+            });
+        });
+    }
+
 
     async function connectDB() {
         return new Promise((resolve, reject) => {

@@ -322,15 +322,35 @@ async function loadResults() {
         
         // Update summary
         if (studentResults.length > 0) {
-            document.getElementById('totalStudents').textContent = studentResults.length;
-            document.getElementById('classAverage').textContent = 
-                Math.round(studentResults.reduce((sum, s) => sum + s.average, 0) / studentResults.length) + '%';
-            document.getElementById('highestScore').textContent = 
-                Math.round(Math.max(...studentResults.map(s => s.average))) + '%';
-            document.getElementById('lowestScore').textContent = 
-                Math.round(Math.min(...studentResults.map(s => s.average))) + '%';
+            // Animated counters (starts at 0)
+            const animateNumber = (el, to, suffix = '', duration = 900) => {
+                const from = 0;
+                const start = performance.now();
+                const step = (now) => {
+                    const t = Math.min(1, (now - start) / duration);
+                    // Ease-out for a fast start
+                    const eased = 1 - Math.pow(1 - t, 3);
+                    const value = from + (to - from) * eased;
+                    const intVal = Number.isFinite(to) ? Math.round(value) : 0;
+                    el.textContent = `${intVal}${suffix}`;
+                    if (t < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            };
+
+            const totalStudents = studentResults.length;
+            const classAvg = Math.round(studentResults.reduce((sum, s) => sum + s.average, 0) / studentResults.length);
+            const highest = Math.round(Math.max(...studentResults.map(s => s.average)));
+            const lowest = Math.round(Math.min(...studentResults.map(s => s.average)));
+
+            animateNumber(document.getElementById('totalStudents'), totalStudents, '', 900);
+            animateNumber(document.getElementById('classAverage'), classAvg, '%', 900);
+            animateNumber(document.getElementById('highestScore'), highest, '%', 900);
+            animateNumber(document.getElementById('lowestScore'), lowest, '%', 900);
+
             document.getElementById('summaryCards').style.display = 'grid';
         }
+
         
         // Render table
         renderTable(studentResults);
