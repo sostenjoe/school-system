@@ -85,38 +85,22 @@ function loadDefaultStandardOptions() {
 
 
 async function loadTeacherStandardsAndSubjects(teacherId) {
+  // For your UX request: keep standards selection as Admin-controlled only.
+  // We will only load the teacher's currently assigned subjects.
   try {
-    // Ensure options exist before selecting
-    if (standardSelect.options.length === 0) {
-      loadDefaultStandardOptions();
-    }
+    const teachersResp = await fetchJson(`/api/teachers`, { headers: authHeaders });
+    const teacher = teachersResp.find(t => t.id == teacherId);
 
-
-    const [teacherStandardsResp, teachersResp] = await Promise.all([
-      fetchJson(`/api/teachers/${teacherId}/standards`, { headers: authHeaders }),
-      fetchJson(`/api/teachers`, { headers: authHeaders })
-    ]);
-
-    // load standards multi-select
-    const groups = teacherStandardsResp.standardGroups || teacherStandardsResp;
-
-    for (let i = 0; i < standardSelect.options.length; i++) {
-      const opt = standardSelect.options[i];
-      opt.selected = Array.isArray(groups) && groups.includes(opt.value);
-    }
-
-    // load subjects selection (server will have assigned based on last standards)
-    const allTeachers = teachersResp;
-    const teacher = allTeachers.find(t => t.id == teacherId);
     if (teacher && teacher.subjects) {
       const subjectIds = teacher.subjects.map(s => s.id);
       selectSubjectsForTeacher(subjectIds);
     }
   } catch (e) {
     console.error("loadTeacherStandardsAndSubjects error:", e);
-    showMessage(assignmentMessageEl, e.message || "Unable to load teacher standards.", "error");
+    showMessage(assignmentMessageEl, e.message || "Unable to load teacher subjects.", "error");
   }
 }
+
 
 
 async function loadAssignmentData() {
