@@ -53,7 +53,10 @@ async function loadTeacherProfile() {
 }
 
 async function loadSubjects() {
-  const subjects = await fetchJson("/api/teachers/subjects", { headers: authHeaders });
+  const subjects = await fetchJson("/api/teachers/subjects", { headers: authHeaders }).catch((e)=>{
+    console.error('Failed to load teacher subjects:', e);
+    throw e;
+  });
   subjectFilter.innerHTML = "";
   if (subjects.length === 0) {
     subjectFilter.innerHTML = "<option value=\"\">No assigned subjects</option>";
@@ -77,7 +80,10 @@ async function loadClasses() {
 
   const [students, teacherStandardsResp] = await Promise.all([
     fetchJson("/api/students"),
-    fetchJson("/api/teachers/me/standards", { headers: authHeaders }).catch(() => null)
+    fetchJson("/api/teachers/me/standards", { headers: authHeaders }).catch((e) => {
+      console.error("Failed to load teacher standards:", e);
+      return null;
+    })
   ]);
 
   const teacherStandardGroups = (teacherStandardsResp && teacherStandardsResp.standardGroups) ? teacherStandardsResp.standardGroups : teacherStandardsResp;
@@ -87,7 +93,10 @@ async function loadClasses() {
 
   // If teacher has no standards assigned, fall back to all classes.
   const classListSource = allowedStandards.length
-    ? studentClasses.filter((c) => allowedStandards.includes(String(c).toUpperCase().trim()))
+    ? studentClasses.filter((c) => {
+        const cls = String(c).toUpperCase().trim();
+        return allowedStandards.map(String).map(s=>s.toUpperCase().trim()).includes(cls);
+      })
     : studentClasses;
 
   const classList = [...new Set(classListSource)].sort();
