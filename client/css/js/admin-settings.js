@@ -68,8 +68,28 @@ function renderSubjectOptions(subjects) {
   });
 }
 
+function loadDefaultStandardOptions() {
+  // Replace the placeholder with the expected standard group values.
+  // These must match server/constants/standardSubjects.js getStandardKey mapping.
+  const groups = ["I-II", "III-IV", "V-VII"];
+  standardSelect.innerHTML = "";
+  groups.forEach((g) => {
+    const opt = document.createElement("option");
+    opt.value = g;
+    opt.textContent = g;
+    standardSelect.appendChild(opt);
+  });
+}
+
+
 async function loadTeacherStandardsAndSubjects(teacherId) {
   try {
+    // Ensure options exist before selecting
+    if (standardSelect.options.length === 0) {
+      loadDefaultStandardOptions();
+    }
+
+
     const [teacherStandardsResp, teachersResp] = await Promise.all([
       fetchJson(`/api/teachers/${teacherId}/standards`, { headers: authHeaders }),
       fetchJson(`/api/teachers`, { headers: authHeaders })
@@ -80,7 +100,7 @@ async function loadTeacherStandardsAndSubjects(teacherId) {
 
     for (let i = 0; i < standardSelect.options.length; i++) {
       const opt = standardSelect.options[i];
-      opt.selected = groups.includes(opt.value);
+      opt.selected = Array.isArray(groups) && groups.includes(opt.value);
     }
 
     // load subjects selection (server will have assigned based on last standards)
@@ -92,8 +112,10 @@ async function loadTeacherStandardsAndSubjects(teacherId) {
     }
   } catch (e) {
     console.error("loadTeacherStandardsAndSubjects error:", e);
+    showMessage(assignmentMessageEl, e.message || "Unable to load teacher standards.", "error");
   }
 }
+
 
 async function loadAssignmentData() {
   try {
@@ -169,8 +191,10 @@ assignmentForm.addEventListener("submit", async (e) => {
       showMessage(assignmentMessageEl, "Subjects assigned based on selected standards.", "success");
       await loadAssignmentData();
 
-      // After assignment, reload subjects for the teacher
+
+
       teacherSelect.value = teacherId;
+
       await loadTeacherStandardsAndSubjects(teacherId);
     } else {
       showMessage(assignmentMessageEl, data.message || "Failed to assign subjects.", "error");
