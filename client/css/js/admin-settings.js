@@ -71,9 +71,11 @@ function renderSubjectOptions(subjects) {
 function loadDefaultStandardOptions() {
   // Replace the placeholder with the expected standard group values.
   // These must match server/constants/standardSubjects.js getStandardKey mapping.
-  const groups = ["I-II", "III-IV", "V-VII"];
+  const groups = ["I", "II", "III", "IV", "V", "VI", "VII"];
   standardSelect.innerHTML = "";
   groups.forEach((g) => {
+
+
     const opt = document.createElement("option");
     opt.value = g;
     opt.textContent = g;

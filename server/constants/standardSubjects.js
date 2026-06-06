@@ -1,6 +1,6 @@
 const STANDARD_SUBJECTS = Object.freeze({
-  // Standard I–II
-  "I-II": [
+  // Standard I
+  "I": [
     "Reading and Writing",
     "English",
     "Arithmetic",
@@ -8,9 +8,17 @@ const STANDARD_SUBJECTS = Object.freeze({
     "Culture"
   ],
 
+  // Standard II
+  "II": [
+    "Reading and Writing",
+    "English",
+    "Arithmetic",
+    "Health and Environment",
+    "Culture"
+  ],
 
-  // Standard III–IV
-  "III-IV": [
+  // Standard III
+  "III": [
     "Kiswahili",
     "English",
     "Mathematics",
@@ -20,8 +28,30 @@ const STANDARD_SUBJECTS = Object.freeze({
     "Religious Education"
   ],
 
-  // Standard V–VI (includes Religious)
-  "V-VI": [
+  // Standard IV
+  "IV": [
+    "Kiswahili",
+    "English",
+    "Mathematics",
+    "Science",
+    "Social Studies",
+    "Civic and Moral Education",
+    "Religious Education"
+  ],
+
+  // Standard V
+  "V": [
+    "Kiswahili",
+    "English",
+    "Mathematics",
+    "Science",
+    "Social Studies",
+    "Civic and Moral Education",
+    "Religious Education"
+  ],
+
+  // Standard VI
+  "VI": [
     "Kiswahili",
     "English",
     "Mathematics",
@@ -42,24 +72,23 @@ const STANDARD_SUBJECTS = Object.freeze({
   ]
 });
 
+
 function getStandardKey(standard) {
   const s = String(standard || "").trim();
 
-  // Accept group keys directly
-  if (["I-II", "III-IV", "V-VI", "VII"].includes(s)) return s;
-
   const roman = s.toUpperCase();
-  if (["I", "II"].includes(roman)) return "I-II";
-  if (["III", "IV"].includes(roman)) return "III-IV";
-  if (["V", "VI"].includes(roman)) return "V-VI";
-  if (["VII"].includes(roman)) return "VII";
+
+  // Accept exact standard values directly
+  if (["I","II","III","IV","V","VI","VII"].includes(roman)) return roman;
+
+  // Backward compatibility: accept old grouped keys and map them to the intersection of members
+  // (Used only if some old UI still sends I-II / III-IV / V-VI.)
+  if (["I-II", "III-IV", "V-VI", "VII"].includes(s)) return s;
 
   // Also accept numeric standards: 1..7
   const asNum = Number(s);
-  if (asNum >= 1 && asNum <= 2) return "I-II";
-  if (asNum >= 3 && asNum <= 4) return "III-IV";
-  if (asNum >= 5 && asNum <= 6) return "V-VI";
-  if (asNum === 7) return "VII";
+  if (asNum >= 1 && asNum <= 7) return String(asNum).toUpperCase();
+
 
   return null;
 }
