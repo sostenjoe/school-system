@@ -111,6 +111,16 @@ if (isProduction && process.env.DB_HOST) {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (teacher_id) REFERENCES teachers (id) ON DELETE CASCADE,
                     UNIQUE KEY unique_teacher_standard (teacher_id, standard_group)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+
+                `CREATE TABLE IF NOT EXISTS teacher_class_subjects (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    teacher_id INT NOT NULL,
+                    class_name VARCHAR(10) NOT NULL,
+                    subject_id INT NOT NULL,
+                    FOREIGN KEY (teacher_id) REFERENCES teachers (id) ON DELETE CASCADE,
+                    FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE,
+                    UNIQUE KEY unique_teacher_class_subject (teacher_id, class_name, subject_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
             ];
 
@@ -276,6 +286,16 @@ if (isProduction && process.env.DB_HOST) {
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (teacher_id) REFERENCES teachers (id) ON DELETE CASCADE,
                     UNIQUE (teacher_id, standard_group)
+                )`,
+
+                `CREATE TABLE IF NOT EXISTS teacher_class_subjects (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    teacher_id INTEGER NOT NULL,
+                    class_name TEXT NOT NULL,
+                    subject_id INTEGER NOT NULL,
+                    FOREIGN KEY (teacher_id) REFERENCES teachers (id) ON DELETE CASCADE,
+                    FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE,
+                    UNIQUE (teacher_id, class_name, subject_id)
                 )`
             ];
 
