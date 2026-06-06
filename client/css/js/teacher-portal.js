@@ -71,12 +71,31 @@ async function loadSubjects() {
 }
 
 async function loadClasses() {
-  const students = await fetchJson("/api/students");
-  const classList = [...new Set(students.map((student) => student.class))].sort();
+  // UX: filter available classes based on the standards assigned to this teacher.
+  // We map: Standard I..VII -> Class labels like "I", "II", ... "VII".
+  // (This project stores student.class as a string; we filter it.)
+
+  const [students, teacherStandardsResp] = await Promise.all([
+    fetchJson("/api/students"),
+    fetchJson("/api/teachers/me/standards", { headers: authHeaders }).catch(() => null)
+  ]);
+
+  const teacherStandardGroups = (teacherStandardsResp && teacherStandardsResp.standardGroups) ? teacherStandardsResp.standardGroups : teacherStandardsResp;
+  const allowedStandards = Array.isArray(teacherStandardGroups) ? teacherStandardGroups : [];
+
+  const studentClasses = students.map((student) => student.class);
+
+  // If teacher has no standards assigned, fall back to all classes.
+  const classListSource = allowedStandards.length
+    ? studentClasses.filter((c) => allowedStandards.includes(String(c).toUpperCase().trim()))
+    : studentClasses;
+
+  const classList = [...new Set(classListSource)].sort();
   classFilter.innerHTML = "";
 
   if (classList.length === 0) {
     classFilter.innerHTML = "<option value=\"\">No classes available</option>";
+    studentCountEl.textContent = 0;
     return;
   }
 
@@ -87,8 +106,9 @@ async function loadClasses() {
     classFilter.appendChild(option);
   });
 
-  studentCountEl.textContent = students.length;
+  studentCountEl.textContent = classListSource.length;
 }
+
 
 function renderStudentTable(students) {
   studentRows.innerHTML = "";
