@@ -165,11 +165,15 @@ assignmentForm.addEventListener("submit", async (e) => {
   }
 
   try {
-    const response = await fetch(`/api/teachers/${teacherId}/standards/subjects`, {
+    // UX change: do NOT auto-select/overwrite subjects based on standards intersection.
+    // Admin will manually select subjects in the multi-select.
+    // We still save the selected standards for teacher metadata.
+    const response = await fetch(`/api/teachers/${teacherId}/standards`, {
       method: "PUT",
       headers: authHeaders,
       body: JSON.stringify({ standardGroups: selectedStandardGroups })
     });
+
 
     const data = await response.json();
 
