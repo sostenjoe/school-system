@@ -1,11 +1,17 @@
 # TODO Progress
 
-- [x] Understand repo structure and existing flows (auth, teachers, students, subjects, results, analytics)
-- [x] Diagnose email configuration handling and improve `server/utils/emailService.js`
-- [x] Add initial implementation plan to `TODO.md`
-- [ ] Step 1: Implement Standard I–VII subject mapping + seed/ensure required subjects exist in DB
-- [ ] Step 2: Add admin-only “general results” ranked API filtered by Standard + Exam type + academic year
-- [ ] Step 3: Update `client/css/js/pages/admin-results.html` UI to include Standard + Exam type + Year, and render table with per-subject totals/avg/grade + position
-- [ ] Step 4: Implement admin-controlled assignment of subjects-to-teachers and scope teachers to allowed standards/classes
-- [ ] Step 5: Test end-to-end (`npm run dev` + verify filters + ranking + assignment)
+- [x] Plan confirmation: update DB schema + APIs + admin UI
+
+- [x] Update DB initialization (`server/config/db.js`) to create `teacher_standard_ranges`
+
+- [ ] Update `server/models/Teacher.js` to read/write assigned standard ranges
+- [ ] Update `server/controllers/teacherController.js` to support assigning ranges (admin) and fetching allowed subjects by teacher/range
+- [ ] Update `client/css/js/pages/admin-settings.html` + `client/css/js/admin-settings.js` to add standard range selector and limit subjects by range
+- [ ] Update `client/css/js/pages/admin-results.html` to add filters: standard I–VII, academic year (2026–2050), exam type
+- [ ] Update `client/css/js/pages/admin-results.html` fetch logic to:
+  - [ ] build subject list from standardSubjects.js range
+  - [ ] fetch results with `academic_year` + `result_type`
+  - [ ] show “Results not ready yet” if no submissions for selected year/exam
+- [ ] Improve number animation (smoother start, avoid rounding jumps)
+- [ ] Quick runtime check: load admin-settings/admin-results in browser and verify flows
 
