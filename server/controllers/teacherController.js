@@ -38,6 +38,22 @@ exports.getTeachers = async (req, res) => {
     }
 };
 
+exports.getMeStandards = async (req, res) => {
+    try {
+        const teacherId = req.teacher?.id;
+
+        if (!teacherId) {
+            return res.status(401).json({ message: "Unauthorized access." });
+        }
+
+        const standardGroups = await Teacher.getStandardGroups(Number(teacherId));
+        res.json({ standardGroups });
+    } catch (error) {
+        console.error("Get me standards error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 exports.getSubjects = async (req, res) => {
     try {
         const teacherId = req.teacher?.id;
