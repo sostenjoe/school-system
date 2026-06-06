@@ -129,12 +129,12 @@ exports.assignSubject = async (req, res) => {
         const teacherId = req.teacher?.id;
         // Support both single subjectId and array of subjectIds
         let subjectIds = req.body.subjectIds || req.body.subjectId;
-        
+
         // Convert single value to array
         if (!Array.isArray(subjectIds)) {
             subjectIds = subjectIds ? [subjectIds] : [];
         }
-        
+
         // Convert all to numbers
         subjectIds = subjectIds.map(id => Number(id));
 
@@ -155,3 +155,57 @@ exports.assignSubject = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.getTeacherStandardGroups = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        if (!teacherId) return res.status(400).json({ message: "Teacher ID is required." });
+
+        const standardGroups = await Teacher.getStandardGroups(Number(teacherId));
+        res.json({ standardGroups });
+    } catch (error) {
+        console.error("Get teacher standard groups error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.setTeacherStandardGroups = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        const { standardGroups } = req.body;
+
+        if (!teacherId) return res.status(400).json({ message: "Teacher ID is required." });
+
+        await Teacher.setStandardGroups(Number(teacherId), standardGroups);
+        res.json({ message: "Standard groups saved successfully." });
+    } catch (error) {
+        console.error("Set teacher standard groups error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.assignSubjectsByStandards = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        const { standardGroups } = req.body;
+
+        if (!teacherId) return res.status(400).json({ message: "Teacher ID is required." });
+
+        const groups = Array.isArray(standardGroups) ? standardGroups : [];
+        if (groups.length === 0) {
+            return res.status(400).json({ message: "Please select at least one standard group." });
+        }
+
+        // Save selections
+        await Teacher.setStandardGroups(Number(teacherId), groups);
+
+        // Assign subjects computed by intersection
+        const allowedSubjectIds = await Teacher.setSubjectsByStandardGroups(Number(teacherId), groups);
+
+        res.json({ message: "Subjects assigned based on standards successfully.", allowedSubjectIds });
+    } catch (error) {
+        console.error("Assign subjects by standards error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+

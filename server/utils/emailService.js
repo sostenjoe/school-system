@@ -47,9 +47,12 @@ function hasEmailConfig() {
 function createTransporter() {
     const config = getEmailConfig();
 
-    // Nodemailer needs secure=true only for port 465; for 587/STARTTLS keep secure=false.
-    const secure = process.env.SMTP_SECURE === "true";
+    // Nodemailer: secure=true for implicit TLS (usually port 465). For STARTTLS (e.g. 587) keep secure=false.
+    const explicitSecure = process.env.SMTP_SECURE === "true";
+    const inferredSecure = Number(config.port) === 465;
+    const secure = typeof explicitSecure === "boolean" ? explicitSecure : inferredSecure;
 
+    // For service-based configs (like gmail), nodemailer typically uses STARTTLS on 587.
     if (config.service) {
         return nodemailer.createTransport({
             service: config.service,
@@ -57,7 +60,6 @@ function createTransporter() {
                 user: config.user,
                 pass: config.pass
             },
-            // Use STARTTLS for Gmail (usually port 587)
             secure
         });
     }

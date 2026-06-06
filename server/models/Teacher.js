@@ -1,4 +1,5 @@
 const { query } = require("../config/db");
+const { STANDARD_SUBJECTS, getStandardKey } = require("../constants/standardSubjects");
 
 const Teacher = {
     create: async (data) => {
@@ -78,6 +79,72 @@ const Teacher = {
                 );
             }
         }
+    },
+
+    // Save selected standard groups for a teacher
+    setStandardGroups: async (teacherId, standardGroups) => {
+        const groups = Array.isArray(standardGroups) ? standardGroups : [];
+
+        // Normalize + unique
+        const uniqueGroups = [...new Set(groups)].filter(Boolean);
+        if (!teacherId) return;
+
+        // Clear
+        await query("DELETE FROM teacher_standard_ranges WHERE teacher_id = ?", [teacherId]);
+
+        // Insert
+        for (const g of uniqueGroups) {
+            await query(
+                "INSERT OR IGNORE INTO teacher_standard_ranges (teacher_id, standard_group) VALUES (?, ?)",
+                [teacherId, g]
+            );
+        }
+    },
+
+    // Get selected standard groups for a teacher
+    getStandardGroups: async (teacherId) => {
+        const rows = await query(
+            "SELECT standard_group FROM teacher_standard_ranges WHERE teacher_id = ? ORDER BY standard_group",
+            [teacherId]
+        );
+        return (rows || []).map(r => r.standard_group);
+    },
+
+    // Compute allowed subject ids based on selected standard groups using INTERSECTION
+    getAllowedSubjectsByStandardGroups: async (standardGroups) => {
+        const groups = Array.isArray(standardGroups) ? standardGroups : [];
+        if (groups.length === 0) return [];
+
+        // Build set of subject names for each group, then intersect
+        const normalizedGroups = groups
+            .map(g => String(g || "").trim())
+            .filter(g => g && STANDARD_SUBJECTS[g]);
+
+        if (normalizedGroups.length === 0) return [];
+
+        let intersectionSet = new Set(STANDARD_SUBJECTS[normalizedGroups[0]]);
+        for (const g of normalizedGroups.slice(1)) {
+            const subjectNames = new Set(STANDARD_SUBJECTS[g]);
+            intersectionSet = new Set([...intersectionSet].filter(x => subjectNames.has(x)));
+        }
+
+        const subjectNames = [...intersectionSet];
+        if (subjectNames.length === 0) return [];
+
+        // Return ids of subjects matching those names
+        const placeholders = subjectNames.map(() => "?").join(",");
+        const rows = await query(
+            `SELECT id FROM subjects WHERE subject_name IN (${placeholders})`,
+            subjectNames
+        );
+        return (rows || []).map(r => r.id);
+    },
+
+    // Assign allowed subjects (overwrites current teacher_subjects)
+    setSubjectsByStandardGroups: async (teacherId, standardGroups) => {
+        const allowedSubjectIds = await Teacher.getAllowedSubjectsByStandardGroups(standardGroups);
+        await Teacher.assignSubjects(teacherId, allowedSubjectIds);
+        return allowedSubjectIds;
     },
 
     // Get all subjects assigned to a teacher

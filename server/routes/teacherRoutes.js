@@ -10,4 +10,9 @@ router.get("/subjects", authMiddleware.authenticate, teacherController.getSubjec
 router.put("/:teacherId/subject", adminMiddleware.authenticateAdmin, teacherController.assignSubjectToTeacher);
 router.put("/subject", authMiddleware.authenticate, teacherController.assignSubject);
 
+router.get("/:teacherId/standards", adminMiddleware.authenticateAdmin, teacherController.getTeacherStandardGroups);
+router.put("/:teacherId/standards", adminMiddleware.authenticateAdmin, teacherController.setTeacherStandardGroups);
+router.put("/:teacherId/standards/subjects", adminMiddleware.authenticateAdmin, teacherController.assignSubjectsByStandards);
+
+
 module.exports = router;

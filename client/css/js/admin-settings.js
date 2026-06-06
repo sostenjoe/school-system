@@ -16,6 +16,7 @@ const credentialsForm = document.getElementById("credentialsForm");
 const assignmentForm = document.getElementById("assignmentForm");
 const teacherSelect = document.getElementById("teacherSelect");
 const subjectSelect = document.getElementById("subjectSelect");
+const standardSelect = document.getElementById("standardSelect");
 const backBtn = document.getElementById("backBtn");
 
 function showMessage(element, text, type) {
@@ -67,6 +68,33 @@ function renderSubjectOptions(subjects) {
   });
 }
 
+async function loadTeacherStandardsAndSubjects(teacherId) {
+  try {
+    const [teacherStandardsResp, teachersResp] = await Promise.all([
+      fetchJson(`/api/teachers/${teacherId}/standards`, { headers: authHeaders }),
+      fetchJson(`/api/teachers`, { headers: authHeaders })
+    ]);
+
+    // load standards multi-select
+    const groups = teacherStandardsResp.standardGroups || teacherStandardsResp;
+
+    for (let i = 0; i < standardSelect.options.length; i++) {
+      const opt = standardSelect.options[i];
+      opt.selected = groups.includes(opt.value);
+    }
+
+    // load subjects selection (server will have assigned based on last standards)
+    const allTeachers = teachersResp;
+    const teacher = allTeachers.find(t => t.id == teacherId);
+    if (teacher && teacher.subjects) {
+      const subjectIds = teacher.subjects.map(s => s.id);
+      selectSubjectsForTeacher(subjectIds);
+    }
+  } catch (e) {
+    console.error("loadTeacherStandardsAndSubjects error:", e);
+  }
+}
+
 async function loadAssignmentData() {
   try {
     const [teachers, subjects] = await Promise.all([
@@ -115,31 +143,35 @@ assignmentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const teacherId = teacherSelect.value;
-  const subjectIds = getSelectedSubjects();
+
+  const selectedStandardGroups = Array.from(standardSelect.selectedOptions).map(o => o.value);
 
   if (!teacherId) {
     showMessage(assignmentMessageEl, "Please select a teacher.", "error");
     return;
   }
 
-  if (!subjectIds || subjectIds.length === 0) {
-    showMessage(assignmentMessageEl, "Please select at least one subject.", "error");
+  if (!selectedStandardGroups || selectedStandardGroups.length === 0) {
+    showMessage(assignmentMessageEl, "Please select at least one standard.", "error");
     return;
   }
 
   try {
-    const response = await fetch(`/api/teachers/${teacherId}/subject`, {
+    const response = await fetch(`/api/teachers/${teacherId}/standards/subjects`, {
       method: "PUT",
       headers: authHeaders,
-      body: JSON.stringify({ subjectIds })
+      body: JSON.stringify({ standardGroups: selectedStandardGroups })
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      showMessage(assignmentMessageEl, "Subjects assigned successfully.", "success");
+      showMessage(assignmentMessageEl, "Subjects assigned based on selected standards.", "success");
       await loadAssignmentData();
+
+      // After assignment, reload subjects for the teacher
       teacherSelect.value = teacherId;
+      await loadTeacherStandardsAndSubjects(teacherId);
     } else {
       showMessage(assignmentMessageEl, data.message || "Failed to assign subjects.", "error");
     }

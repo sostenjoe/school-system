@@ -16,7 +16,8 @@
     </div>
 
     <div class="form-section">
-      <h3>Assign Subject to Teacher</h3>
+      <h3>Assign Subjects to Teacher (by Standards Intersection)</h3>
+
 
       <div class="info-box">
         <p>Select a registered teacher and choose the subject they should teach.</p>
@@ -31,14 +32,24 @@
         </div>
 
         <div class="form-group">
-          <label>Subjects * (Hold Ctrl/Cmd to select multiple)</label>
+          <label for="standardSelect">Standards (Class B: I–VII) * (select multiple)</label>
+          <div class="multi-select-container">
+            <select id="standardSelect" multiple size="4">
+              <option value="">Loading standards...</option>
+            </select>
+          </div>
+          <p class="form-hint">Subjects will update automatically using intersection.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Subjects * (auto-selected)</label>
           <div class="multi-select-container">
             <select id="subjectSelect" multiple size="5">
               <option value="">Loading subjects...</option>
             </select>
           </div>
-          <p class="form-hint">Hold Ctrl (Windows) or Cmd (Mac) to select multiple subjects</p>
         </div>
+
 
         <div class="form-actions">
           <button type="submit" class="btn-save">Assign Subjects</button>
