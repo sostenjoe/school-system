@@ -168,27 +168,46 @@ assignmentForm.addEventListener("submit", async (e) => {
     // UX change: do NOT auto-select/overwrite subjects based on standards intersection.
     // Admin will manually select subjects in the multi-select.
     // We still save the selected standards for teacher metadata.
-    const response = await fetch(`/api/teachers/${teacherId}/standards`, {
+    // 1) Save selected standards (classes)
+    const standardsResponse = await fetch(`/api/teachers/${teacherId}/standards`, {
       method: "PUT",
       headers: authHeaders,
       body: JSON.stringify({ standardGroups: selectedStandardGroups })
     });
 
+    const standardsData = await standardsResponse.json();
 
-    const data = await response.json();
-
-    if (response.ok) {
-      showMessage(assignmentMessageEl, "Standard ranges saved for this teacher.", "success");
-      await loadAssignmentData();
-
-
-
-      teacherSelect.value = teacherId;
-
-      await loadTeacherStandardsAndSubjects(teacherId);
-    } else {
-      showMessage(assignmentMessageEl, data.message || "Failed to assign subjects.", "error");
+    if (!standardsResponse.ok) {
+      showMessage(assignmentMessageEl, standardsData.message || "Failed to save standards.", "error");
+      return;
     }
+
+    // 2) Save selected subjects (manual assignment)
+    const selectedSubjectIds = Array.from(subjectSelect.selectedOptions).map(o => Number(o.value));
+
+    if (!selectedSubjectIds || selectedSubjectIds.length === 0) {
+      showMessage(assignmentMessageEl, "Please select at least one subject.", "error");
+      return;
+    }
+
+    const subjectsResponse = await fetch(`/api/teachers/${teacherId}/subject`, {
+      method: "PUT",
+      headers: authHeaders,
+      body: JSON.stringify({ subjectIds: selectedSubjectIds })
+    });
+
+    const subjectsData = await subjectsResponse.json();
+
+    if (!subjectsResponse.ok) {
+      showMessage(assignmentMessageEl, subjectsData.message || "Failed to save subjects.", "error");
+      return;
+    }
+
+    showMessage(assignmentMessageEl, "Assigned classes and subjects saved for this teacher.", "success");
+    await loadAssignmentData();
+
+    teacherSelect.value = teacherId;
+    await loadTeacherStandardsAndSubjects(teacherId);
   } catch (error) {
     console.error("Assignment error:", error);
     showMessage(assignmentMessageEl, "Server error. Please try again later.", "error");
