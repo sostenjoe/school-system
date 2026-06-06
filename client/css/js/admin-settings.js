@@ -178,7 +178,7 @@ assignmentForm.addEventListener("submit", async (e) => {
     const data = await response.json();
 
     if (response.ok) {
-      showMessage(assignmentMessageEl, "Subjects assigned based on selected standards.", "success");
+      showMessage(assignmentMessageEl, "Standard ranges saved for this teacher.", "success");
       await loadAssignmentData();
 
 
