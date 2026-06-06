@@ -232,6 +232,7 @@ credentialsForm.addEventListener("submit", async (e) => {
   const newPassword = document.getElementById("newPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
 
+
   if (!currentPassword) {
     showMessage(messageEl, "Current password is required.", "error");
     return;
